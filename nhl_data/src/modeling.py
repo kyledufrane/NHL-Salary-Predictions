@@ -21,6 +21,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest, f_regression
 
 ##################################################################
 
@@ -37,3 +38,17 @@ def performance(y_true, y_predict):
     rmse = np.sqrt(mean_squared_error(y_true, y_predict))
     # Return the score
     return r2, rmse
+
+##################################################################
+
+# feature selection
+def select_features(X_train, y_train, X_test, features):
+	# configure to select a subset of features
+	fs = SelectKBest(score_func=f_regression, k=features)
+	# learn relationship from training data
+	fs.fit(X_train, y_train)
+	# transform train input data
+	X_train_fs = pd.DataFrame(fs.transform(X_train))
+	# transform test input data
+	X_test_fs = pd.DataFrame(fs.transform(X_test))
+	return X_train_fs, X_test_fs, fs
