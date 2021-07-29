@@ -220,27 +220,38 @@ def player_stats_by_year(df, year):
 ##################################################################
 
 def extract_player_stats(df, player_dict):
+    ''' This function takes in a dataframe and dictionary from the NHL players 
+    API and returns a dataframe with all features from the JSON files'''
     
+    # Create empty dictionary
     player = {}
-        
+     
+    # Iterate through dataframe by link (unique to each player)   
     for link in player_dict.keys():
         
+        # Attempt to pull information from JSON files
         try:
             
+            # Create unique dictionary key
             player[link] = {}
 
+            # Add season to dictionary
             player[link]['season'] = player_dict[link].json()['stats'][0]['splits'][0]['season']
 
+            # Iterate through 'stat' key
             for stats in player_dict[link].json()['stats'][0]['splits'][0]['stat']:
 
+                # Select all stats within the stats key
                 player[link][stats] = player_dict[link].json()['stats'][0]['splits'][0]['stat'][stats]
     
+        # Ignore all errors since we do not care about empty or null JSON objects
         except:
 
             pass
     
     player = {k: v for k, v in player.items() if v}
     
+    # Convert to dataframe
     player_df = pd.DataFrame(player).T.reset_index()
 
     return player_df
