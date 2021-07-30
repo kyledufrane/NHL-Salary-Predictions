@@ -146,7 +146,21 @@ We have a total of eight columns per season that are in a time format (mm:ss) wh
 * powerPlayTimeOnIcePerGame
 * shortHandedTimeOnIcePerGame
 
-For our final step in our data preparation process, the heigh column is denoted by a player being 6'2" tall which, again, is not interpretable by our models. These values have been converted into inches. 
+For our final step in our data preparation process, the heigh column is denoted by a player being 6'2" tall which, again, is not interpretable by our models. These values have been converted into inches.
+
+## Data Insights
+
+Through visualization I identified a few interesting insights and a few that comfirmed my assumptions. My assumptions were that performance is going to effect your salary. I.E. if a player has more total playing time, goals, points, or assits they would be more of an asset to their team. This assumption proved true and can be seen below.
+
+![playing_time](images/timeOnIce20.png)
+
+Two insights that I wouldn't have been able to identify are that the Sweedish have the highest average pay in the league followed by Finland. They do have substantially less players than US and Canada but, nevertheless, it's still surprising. Below you can see a boxplot showing the top six nationalities which are chosen by total players. These six teams make up 459 total players with the lowest nation (Czech) only having a total of 14 players. 
+
+![boxlplot](images/salaries_boxplot.png)
+
+The second surpising insight is that left handed shooters have a higher average pay than right handed shooters as seen below. 
+
+![leftvsright](images/shootsCatches_boxplot.png)
 
 ## Modeling
 
@@ -171,30 +185,40 @@ Next I used Lazy Regressor to identify the top four best models to move forward 
 
 |           Model           | R-Squared|   RMSE    |
 |:-------------------------:|:--------:|:---------:|
-| ExtraTreesRegressor       | 0.76     | 1,257,011 |
-| XGBRegressor              | 0.74     | 1,300,747 |
-| GradientBoostingRegressor | 0.74     | 1,313,867 |
-| RandomForestRegressor     | 0.74     | 1,315,713 |
+| ExtraTreesRegressor       | 0.73     | 1,310,100 |
+| XGBRegressor              | 0.72     | 1,300,747 |
+| RandomForestRegressor     | 0.71     | 1,315,713 |
 
+# Evaluating
 
 After identifying these models I performed a grid search for hyper parameter tuning. Below are the results:
 
 
 |           Model           | R-Squared|   RMSE    |
 |:-------------------------:|:--------:|:---------:|
-| ExtraTreesRegressor       | 0.76     | 1,257,011 |
-| XGBRegressor              | 0.74     | 1,300,747 |
-| GradientBoostingRegressor | 0.74     | 1,313,867 |
-| RandomForestRegressor     | 0.74     | 1,315,713 |
+| ExtraTreesRegressor       | 0.75     | 1,275,485 |
+| XGBRegressor              | 0.73     | 1,325,193 |
+| RandomForestRegressor     | 0.74     | 1,297,042 |
 
-# Evaluating
+We can see an increase in our models performance with ExtraTreesRegressor showcasing is ability to be the final model. Below we can see our models performance vs the actual results:
 
+![Image](images/final_model.jpeg)
 
+The top features our model identified are listed below. Based on my visual observations through the EDA process I wouldn't have guessed blocked shots would've been an important feature. Interesting find! 
 
+* Goals - Season 2019-2020
+* Time On Ice - Season 2019-2020
+* Time On Ice - Season 2018-2019
+* Salary 2019-2020
+* Blocked Shots 2019-2020
 
 # Deployment
 
+Flask: 
 
+# Moving Forward
+
+Moving forward, I would like to further breakdown the model to account for the players bonus structure. Also, gather data on past players and player injuries to see if these features have any effect on the model. Lastly, develop a dashboard that allows the end user to see player performance across their career.  
 
 ## For More Information
 
