@@ -202,7 +202,7 @@ After identifying these models I performed a grid search for hyper parameter tun
 
 We can see an increase in our models performance with ExtraTreesRegressor showcasing is ability to be the final model. Below we can see our models performance vs the actual results:
 
-![Image](images/final_model.jpeg)
+![Image](images/final_model.png)
 
 The top features our model identified are listed below. Based on my visual observations through the EDA process I wouldn't have guessed blocked shots would've been an important feature. Interesting find! 
 
