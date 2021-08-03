@@ -185,8 +185,8 @@ Next I used Lazy Regressor to identify the top four best models to move forward 
 
 |           Model           | R-Squared|   RMSE    |
 |:-------------------------:|:--------:|:---------:|
-| ExtraTreesRegressor       | 0.73     | 1,310,100 |
-| XGBRegressor              | 0.72     | 1,300,747 |
+| ExtraTreesRegressor       | 0.74     | 1,310,100 |
+| XGBRegressor              | 0.73     | 1,300,747 |
 | RandomForestRegressor     | 0.71     | 1,315,713 |
 
 # Evaluating
@@ -196,21 +196,28 @@ After identifying these models I performed a grid search for hyper parameter tun
 
 |           Model           | R-Squared|   RMSE    |
 |:-------------------------:|:--------:|:---------:|
-| ExtraTreesRegressor       | 0.76     | 1,275,485 |
-| XGBRegressor              | 0.73     | 1,325,193 |
-| RandomForestRegressor     | 0.74     | 1,297,042 |
+| ExtraTreesRegressor       | 0.75     | 1,287,182 |
+| XGBRegressor              | 0.73     | 1,333,394 |
+| RandomForestRegressor     | 0.75     | 1,270,232 |
 
-We can see an increase in our models performance with ExtraTreesRegressor showcasing is ability to be the final model. Below we can see our models performance vs the actual results:
+We can see an increase in our models performance with RandomForestRegressor showcasing is ability to be the final model. Below we can see our models performance vs the actual results:
 
 ![Image](images/final_model.png)
 
-The top features our model identified are listed below. Based on my visual observations through the EDA process I wouldn't have guessed blocked shots would've been an important feature. Interesting find! 
+Above we see our final models predeicted values vs actual values. The red stars denote players our model under predicted on while the green x's denote players we over predicted on. I filtered the dataframes based on these values and found the performance of these outliers to follow how our model predicted. Since our stakeholder is negotiating player contracts these values should be honored due to past player performance. To review these dataframes, please navigate to the jupyter notebook (link in the 'For More Information' section of this readme)
 
-* Goals - Season 2019-2020
-* Time On Ice - Season 2019-2020
+The top ten features our model identified are listed below. 
+
+* Salary - Season 2019-2020
 * Time On Ice - Season 2018-2019
-* Salary 2019-2020
-* Blocked Shots 2019-2020
+* Time On Ice - Season 2019-2020
+* Goals - Season 2019-2020
+* Hits - Season 2017-2018
+* Salary - Season 2018-2019
+* Short Handed Time On Ice - Season 2019-2020
+* Shot Percentage - Season 2016-2017
+* Plus Minus - Season 2018-2019
+* Hits - Season 2019-2020
 
 # Deployment
 
@@ -218,7 +225,7 @@ Flask:
 
 # Moving Forward
 
-Moving forward, I would like to further breakdown the model to account for the players bonus structure. Also, gather data on past players and player injuries to see if these features have any effect on the model. Lastly, develop a dashboard that allows the end user to see player performance across their career.  
+Moving forward, I would like to further breakdown the model to account for the players contracts and durations. Also, gather data on past players and player injuries to see if these features have any effect on the model. Lastly, develop a dashboard that allows the end user to see player performance across their career.  
 
 ## For More Information
 
@@ -230,7 +237,7 @@ If you have any additional questions please contact me at:
         
         Email: kyle.dufrane@gmail.com
         Github: kyledufrane
-        LinkedIn: [LInkedIn](https://www.linkedin.com/in/kyle-dufrane-8131086b/)
+        LinkedIn: https://www.linkedin.com/in/kyle-dufrane-8131086b/
         
 ## Repository Structure
 
