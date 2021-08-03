@@ -221,8 +221,7 @@ The top ten features our model identified are listed below.
 
 # Deployment
 
-Flask: 
-
+This project has been deployed using Flask. For deployment details please clone [this](https://github.com/kyledufrane/Capstone_Flask) repo.
 # Moving Forward
 
 Moving forward, I would like to further breakdown the model to account for the players contracts and durations. Also, gather data on past players and player injuries to see if these features have any effect on the model. Lastly, develop a dashboard that allows the end user to see player performance across their career.  
