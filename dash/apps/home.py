@@ -26,6 +26,7 @@ columns = ['birthDate',
            'birthCity']
 
 df = pd.read_csv('~/Desktop/NHL-Salary-Predictions/data/cleaned_player_df_dash.csv').drop(columns, axis=1)
+df['shootsCatches'] = df['shootsCatches'].replace('L', 'Left').replace('R', 'Right')
 
 # --------------------------- Player Salaries -------------------------------------------------
 
@@ -42,22 +43,35 @@ df_datatable_1 = df[['fullName',
 df_datatable_1['shootsCatches'] = df_datatable_1['shootsCatches'].replace('L', 'Left').replace('R', 'Right')
 df_datatable_1['Rank'] = range(1, len(df_datatable_1) + 1)
 df_datatable_1 = df_datatable_1[['Rank',
-                                   'fullName',
-                                   'Salary_2020-21',
-                                   'name',
-                                   'currentAge',
-                                   'height',
-                                   'weight',
-                                   'shootsCatches',
-                                   'birthCountry']]
+                                 'fullName',
+                                 'Salary_2020-21',
+                                 'name',
+                                 'currentAge',
+                                 'height',
+                                 'weight',
+                                 'shootsCatches',
+                                 'birthCountry']]
 df_datatable_1['id'] = df['fullName']
 df_datatable_1.set_index('id', inplace=True, drop=False)
+
+# --------------------------- Offensive Stat's -------------------------------------------------
+
+offense = df[['fullName',
+              'timeOnIce20',
+              'assists20',
+              'goals20',
+              'pim20',
+              'shots20',
+              'games20',
+              'hits20']]
+offense['timeOnIce20'] = offense['timeOnIce20'].str.replace(':', '.').astype(float)
+offense.fillna(0.0, inplace=True)
 
 # --------------  Player Salaries DF - formatting salaries -----------------------------------
 
 money = dash_table.FormatTemplate.money(2)
 
-columns = [
+salary_columns = [
     dict(id='Rank', name='Rank', type='numeric'),
     dict(id='fullName', name='Player Name'),
     dict(id='Salary_2020-21', name='Salary 2020-21', type='numeric', format=money),
@@ -70,6 +84,17 @@ columns = [
 ]
 
 active_cell = {'row': 0, 'column': 1, 'column_id': 'Player Name', 'row_id': 0}
+
+offense_columns = [
+    dict(id='fullName', name='Player Name'),
+    dict(id='timeOnIce20', name='Total Time On Ice', type='numeric'),
+    dict(id='assists20', name='Total Assists', type='numeric'),
+    dict(id='goals20', name='Total Goals', type='numeric'),
+    dict(id='pim20', name='Total Penalty Minutes', type='numeric'),
+    dict(id='shots20', name='Total Shots', type='numeric'),
+    dict(id='games20', name='Total Games', type='numeric'),
+    dict(id='hits20', name='Total Hits', type='numeric')
+]
 
 # --------------------------- Filtering Operators --------------------------------------------
 
@@ -84,7 +109,60 @@ operators = [['ge ', '>='],
 
 # --------------------------- Visualizations -------------------------------------------------
 
-name_vs_salary = px.scatter(df, x='fullName', y='Salary_2020-21')
+def discrete_background_color_bins(df, n_bins=5, columns='all'):
+    import colorlover
+    bounds = [i * (1.0 / n_bins) for i in range(n_bins + 1)]
+    if columns == 'all':
+        if 'id' in df:
+            df_numeric_columns = df.select_dtypes('number').drop(['id'], axis=1)
+        else:
+            df_numeric_columns = df.select_dtypes('number')
+    else:
+        df_numeric_columns = df[columns]
+    df_max = df_numeric_columns.max()
+    df_min = df_numeric_columns.min()
+    ranges = [
+        ((df_max - df_min) * i) + df_min
+        for i in bounds
+        ]
+    ranges = pd.DataFrame(ranges)
+    styles = []
+    legend = []
+    for column in df_numeric_columns:
+
+        for i in range(1, len(bounds)):
+            min_bound = ranges[column][i - 1]
+            max_bound = ranges[column][i]
+            backgroundColor = colorlover.scales[str(n_bins)]['seq']['Blues'][i - 1]
+            color = 'white' if i > len(bounds) / 2. else 'black'
+
+            styles.append({
+                'if': {
+                    'filter_query': (
+                        '{{{column}}} >= {min_bound}' +
+                        (' && {{{column}}} < {max_bound}' if (i < len(bounds) - 1) else '')
+                    ).format(column=column, min_bound=min_bound, max_bound=max_bound),
+                    'column_id': column
+                },
+                'backgroundColor': backgroundColor,
+                'color': color
+            })
+        # legend.append(
+        #     html.Div(style={'display': 'inline-block', 'width': '60px'}, children=[
+        #         html.Div(
+        #             style={
+        #                 'backgroundColor': backgroundColor,
+        #                 'borderLeft': '1px rgb(50, 50, 50) solid',
+        #                 'height': '10px'
+        #             }
+        #         ),
+        #         html.Small(round(min_bound, 2), style={'paddingLeft': '2px'})
+        #     ])
+        # )
+
+    return (styles, html.Div(legend, style={'padding': '5px 0 5px 0'}))
+
+(styles, legend) = discrete_background_color_bins(offense)
 
 # --------------------------- Page Layout ----------------------------------------------------
 
@@ -94,7 +172,7 @@ layout = html.Div(
         html.Div([
             html.H5('Player Salaries', style={'text-align': 'center',
                                               'text-decoration': 'underline'}),
-            dash_table.DataTable(columns = columns,
+            dash_table.DataTable(columns = salary_columns,
                                  data=df_datatable_1.to_dict('records'),
                                  filter_action='native',
                                  sort_action="native",
@@ -109,7 +187,7 @@ layout = html.Div(
                                                'border': '1px solid black'},
                                  active_cell=active_cell,
                                  id='player_tbl')],
-            style={'height': 450, 'width':'95%',
+            style={'height': 450, 'width':'50%',
                    'overflowX': 'scroll',
                    'display': 'inline-block',
                    'vertical-align': 'top',
@@ -125,7 +203,24 @@ layout = html.Div(
                        'vertical-align': 'top', 
                        'margin-left': '3vw', 
                        'margin-top': '3vw',
-                       'width': '95%'})
+                       'width': '95%'}),
+        html.Div([
+                html.Div(legend, style={'float': 'right'}),
+                dash_table.DataTable(
+                    id='offense_tbl',
+                    data=offense.to_dict('records'),
+                    sort_action='native',
+                    columns=offense_columns,
+                    style_data_conditional=styles,
+                    style_data={'color': 'black',
+                                'backgroundColor': 'white',
+                                'border': '1px solid black'},
+                    style_header={'backgroundColor': 'white', 
+                                  'color': 'black',
+                                  'fontWeight': 'bold',
+                                  'border': '1px solid black'},
+    ),
+])
     ]
 )
 
