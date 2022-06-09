@@ -7,16 +7,51 @@ from app import app
 
 # --------------------------- Dataframes ------------------------------------------------------
 
-df = pd.read_csv('~/Desktop/NHL-Salary-Predictions/data/cleaned_player_df_dash.csv')
+columns = ['birthDate',
+           'nationality',
+           'id',
+           'jerseyNumber',
+           'code',
+           'type', 
+           'abbreviation',
+           'birthStateProvince',
+           'Team_Number',
+           'Unnamed: 0',
+           'index',
+           'alternateCaptain',
+           'captain',
+           'active',
+           'rookie',
+           'rosterStatus',
+           'birthCity']
+
+df = pd.read_csv('~/Desktop/NHL-Salary-Predictions/data/cleaned_player_df_dash.csv').drop(columns, axis=1)
 
 # --------------------------- Player Salaries -------------------------------------------------
 
 df = df[df['Salary_2020-21'] != 0.0]
-df_name_pos_sal = df[['fullName', 'Salary_2020-21']].sort_values('Salary_2020-21', ascending=False)
-df_name_pos_sal['Rank'] = range(1, len(df_name_pos_sal) + 1)
-df_name_pos_sal = df_name_pos_sal[['Rank', 'fullName', 'Salary_2020-21']]
-df_name_pos_sal['id'] = df['fullName']
-df_name_pos_sal.set_index('id', inplace=True, drop=False)
+df_datatable_1 = df[['fullName',
+                     'Salary_2020-21',
+                     'name',
+                     'currentAge',
+                     'height',
+                     'weight',
+                     'shootsCatches',
+                     'birthCountry']] \
+                    .sort_values('Salary_2020-21', ascending=False)
+df_datatable_1['shootsCatches'] = df_datatable_1['shootsCatches'].replace('L', 'Left').replace('R', 'Right')
+df_datatable_1['Rank'] = range(1, len(df_datatable_1) + 1)
+df_datatable_1 = df_datatable_1[['Rank',
+                                   'fullName',
+                                   'Salary_2020-21',
+                                   'name',
+                                   'currentAge',
+                                   'height',
+                                   'weight',
+                                   'shootsCatches',
+                                   'birthCountry']]
+df_datatable_1['id'] = df['fullName']
+df_datatable_1.set_index('id', inplace=True, drop=False)
 
 # --------------  Player Salaries DF - formatting salaries -----------------------------------
 
@@ -25,7 +60,13 @@ money = dash_table.FormatTemplate.money(2)
 columns = [
     dict(id='Rank', name='Rank', type='numeric'),
     dict(id='fullName', name='Player Name'),
-    dict(id='Salary_2020-21', name='Salary 2020-21', type='numeric', format=money)
+    dict(id='Salary_2020-21', name='Salary 2020-21', type='numeric', format=money),
+    dict(id='name', name='Position'),
+    dict(id='currentAge', name='Age'),
+    dict(id='height', name='Height', type='any'),
+    dict(id='weight', name='Weight'),
+    dict(id='shootsCatches', name='Shoots'),
+    dict(id='birthCountry', name='Nationality')
 ]
 
 active_cell = {'row': 0, 'column': 1, 'column_id': 'Player Name', 'row_id': 0}
@@ -54,9 +95,8 @@ layout = html.Div(
             html.H5('Player Salaries', style={'text-align': 'center',
                                               'text-decoration': 'underline'}),
             dash_table.DataTable(columns = columns,
-                                 data=df_name_pos_sal.to_dict('records'),
+                                 data=df_datatable_1.to_dict('records'),
                                  filter_action='native',
-                                 filter_query='>10',
                                  sort_action="native",
                                  style_cell={'textAlign': 'left'},
                                  style_as_list_view=True,
@@ -69,7 +109,7 @@ layout = html.Div(
                                                'border': '1px solid black'},
                                  active_cell=active_cell,
                                  id='player_tbl')],
-            style={'height': 450, 'width':450,
+            style={'height': 450, 'width':'95%',
                    'overflowX': 'scroll',
                    'display': 'inline-block',
                    'vertical-align': 'top',
@@ -155,13 +195,13 @@ def update_graphs(row_ids, selected_row_ids, active_cell):
     # `derived_virtual_data=df.to_rows('dict')` when you initialize
     # the component.
     selected_id_set = set(selected_row_ids or [])
-
+    
     if row_ids is None:
-        dff = df_name_pos_sal
+        dff = df_datatable_1
         # pandas Series works enough like a list for this to be OK
-        row_ids = df_name_pos_sal['id']
+        row_ids = df_datatable_1['id']
     else:
-        dff = df_name_pos_sal.loc[row_ids]
+        dff = df_datatable_1.loc[row_ids]
 
     active_row_id = active_cell['row_id'] if active_cell else None
 
