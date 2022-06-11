@@ -113,7 +113,7 @@ basic_player_columns = [
     dict(id='fullName', 
          name='Player Name'),
     dict(id='Salary_2021-22',
-         name='Salary 2021-22',
+         name='Salary',
          type='numeric',
          format=money),
     dict(id='name', 
@@ -139,7 +139,7 @@ offense_data = df[offense].copy()
 offensive_columns = [
      dict(id='fullName', name='Player Name'),
      dict(id='Salary_2021-22',
-          name='Salary 2021-22',
+          name='Salary',
           type='numeric',
           format=money),
      dict(id='Salary_Rank',
@@ -194,7 +194,7 @@ special_teams_columns = [
      dict(id='fullName',
           name='Player Name'),
      dict(id='Salary_2021-22',
-          name='Salary 2021-22',
+          name='Salary',
           type='numeric',
           format=money),
      dict(id='Salary_Rank',
@@ -234,7 +234,7 @@ enforcer_data = df[enforcer].copy()
 enforcer_columns = [
      dict(id='fullName', name='Player Name'),
      dict(id='Salary_2021-22',
-          name='Salary 2021-22',
+          name='Salary',
           type='numeric',
           format=money),
      dict(id='Salary_Rank',
@@ -245,7 +245,7 @@ enforcer_columns = [
           type='numeric'),
      dict(id='name',
           name='Position'),
-     dict(id='hits22', name='Total Hits', type='numeric'),
+     dict(id='hits22', name='Total Hits',type='numeric'),
      dict(id='penaltyMinutes22', name='Total Penalty Minutes', type='numeric')
 ]
 
@@ -303,7 +303,9 @@ endurance_columns = [
 layout = dbc.Container([
     dbc.Row([
         dbc.Col([
-            html.H5(id='datatable_label'),
+            html.H5(id='datatable_label',
+                    style={'text-align':'center',
+                          'text-decoration':'underline'}),
             dash_table.DataTable(id='player_tbl',
                                  filter_action='native',
                                  sort_action="native",
@@ -323,7 +325,7 @@ layout = dbc.Container([
                    'display': 'inline-block',
                    'vertical-align': 'top',
                    'margin-left': '3vw',
-                   'margin-top': '1vw'}),
+                   'margin-top': '0vw'}),
         dbc.Col([
             dcc.Dropdown(options=['Basic Player Data',
                                  'Offense',
@@ -333,7 +335,8 @@ layout = dbc.Container([
             ], 
             value='Basic Player Data', 
             id='skill_sets')
-        ], width=3),
+        ], width=3,
+           style={'margin-top': '5vw'}),
         dbc.Col([
             dcc.Dropdown(options=['All',
                                   'Center',
@@ -342,13 +345,15 @@ layout = dbc.Container([
                                   'Defenseman'],
                         value='All',
                         id='position')
-        ], width=3)
+        ], width=3,
+           style={'margin-top': '5vw'})
     ])
 ])
 
 @app.callback(
     [Output('player_tbl', 'data'),
-     Output('player_tbl', 'columns')],
+     Output('player_tbl', 'columns'),
+     Output('datatable_label', 'children')],
     [Input('skill_sets', 'value'),
     Input('position', 'value'),]
     # Input('player_tbl', "filter_query")]
@@ -361,6 +366,7 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
         else:
             df
         columns = basic_player_columns
+        label_ = f"{position_dropdown} Basic Player Data"
     
     elif skills_sets_dropdown == 'Offense':
         df = offense_data.copy()
@@ -369,6 +375,7 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
         else:
             df
         columns = offensive_columns
+        label_ = f"{position_dropdown} Offensive Player Data"
 
     elif skills_sets_dropdown == 'Special Teams':
         df = special_team_data.copy()
@@ -377,6 +384,7 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
         else:
             df
         columns = special_teams_columns    
+        label_ = f"{position_dropdown} Special Teams Data"
 
     else:
         df = enforcer_data.copy()
@@ -385,6 +393,7 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
         else:
             df
         columns = enforcer_columns
+        label_ = f"{position_dropdown} Enforcer Data"
 
     # Formatting for % in data table and creating quantiles
     for col in df.columns:
@@ -398,11 +407,11 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
     for col in df.columns:
         if 'quantile' in col:
             columns_.append(col)
-            
+
     df['sum_quantiles'] = df[columns_].sum(axis=1)
     df['overall_rank'] = df['sum_quantiles'].rank(method='first', ascending=False).astype('int64')
 
-    return df.to_dict('records'), columns
+    return df.to_dict('records'), columns, label_
 # ---------------- Player Salaries Filtering Definitions -------------------------------------
 
 # @app.callback(
