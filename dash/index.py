@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 
 from app import app
 # import all pages in the app
-from apps import home, player_comparison, player_worth
+from apps import home, player_ratings, player_worth
 
 # button_group = dbc.ButtonGroup([
 #     dbc.Button('Player Comparison', outline=True, href='/player_comparison'),
@@ -12,7 +12,7 @@ from apps import home, player_comparison, player_worth
 # ])
 
 nav = dbc.Nav([
-    dbc.NavItem(dbc.NavLink('Player Comparison', active=True, href='/player_comparison')),
+    dbc.NavItem(dbc.NavLink('Player Ratings', active=True, href='/player_ratings')),
     dbc.NavItem(dbc.NavLink("What's my worth?", active=True, href='/player_worth'))
 ])
 
@@ -75,4 +75,4 @@ def display_page(pathname):
         ]))
 
 if __name__ == '__main__':
-    app.run_server(host='127.0.0.1', debug=True)
+    app.run_server(host='127.0.0.1', debug=True, port=8051)
