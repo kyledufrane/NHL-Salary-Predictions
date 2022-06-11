@@ -36,7 +36,8 @@ basic_player = ['Salary_Rank',
                 'height',
                 'weight',
                 'shootsCatches',
-                'birthCountry']
+                'birthCountry'
+]
 offense = [
      'fullName',
      'Salary_Rank',
@@ -268,9 +269,9 @@ endurance_data['powerPlayTimeOnIcePerGame22'] = endurance_data['powerPlayTimeOnI
 endurance_columns = [
          dict(id='fullName', name='Player Name'),
          dict(id='Salary_2021-22',
-            name='Salary 2021-22',
-            type='numeric',
-            format=money),
+              name='Salary 2021-22',
+              type='numeric',
+              format=money),
          dict(id='name',
             name='Position'),
          dict(id='timeOnIce22',
@@ -327,6 +328,11 @@ layout = dbc.Container([
                         id='position',
                         style={'color':'black'})
         ], width=3, md=3, className='my-3'),
+          dbc.Col([
+               dcc.Dropdown(id='dataframe_feats',
+                            value='Player Name',
+                            style={'color':'black'})
+          ], width=3, md=3, className='my-3'),
      ],
           justify='center'), 
      dbc.Row([
@@ -347,17 +353,18 @@ layout = dbc.Container([
                                  page_size=25,
                                  ), className='my-3', 
                                  width={'size':5}),
-     ])
+          # dbc.Col(dcc.Graph(id='player_graph', figure={}))
+     ], justify='center'),
      ], fluid=True)
 
 
 @app.callback(
     [Output('player_tbl', 'data'),
      Output('player_tbl', 'columns'),
-     Output('datatable_label', 'children')],
+     Output('datatable_label', 'children'),
+     Output('dataframe_feats', 'options')],
     [Input('skill_sets', 'value'),
     Input('position', 'value'),]
-    # Input('player_tbl', "filter_query")]
 )
 def update_datatable(skills_sets_dropdown, position_dropdown):
     if skills_sets_dropdown == 'Basic Player Data':
@@ -411,5 +418,7 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
 
     df['sum_quantiles'] = df[columns_].sum(axis=1)
     df['overall_rank'] = df['sum_quantiles'].rank(method='first', ascending=False).astype('int64')
+    df = df.sort_values('overall_rank', ascending=False)
+    feats_dropdown = [col['name'] for col in columns]
 
-    return df.to_dict('records'), columns, label_
+    return df.to_dict('records'), columns, label_, feats_dropdown
