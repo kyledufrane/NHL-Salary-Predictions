@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from dash import html, dash_table, Input, Output, callback, dcc
 import dash_bootstrap_components as dbc
-import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
+from operator import itemgetter
 
 from app import app
 
@@ -312,7 +314,8 @@ layout = dbc.Container([
             dcc.Dropdown(options=['Basic Player Data',
                                  'Offense',
                                  'Special Teams',
-                                 'Enforcer'
+                                 'Enforcer',
+                                 'Endurance'
             ], 
             value='Basic Player Data', 
             id='skill_sets',
@@ -330,7 +333,6 @@ layout = dbc.Container([
         ], width=3, md=3, className='my-3'),
           dbc.Col([
                dcc.Dropdown(id='dataframe_feats',
-                            value='Player Name',
                             style={'color':'black'})
           ], width=3, md=3, className='my-3'),
      ],
@@ -349,23 +351,25 @@ layout = dbc.Container([
                                                'color': 'black',
                                                'fontWeight': 'bold',
                                                'border': '1px solid black'},
-                              #    active_cell=active_cell,
-                                 page_size=25,
+                                 style_table={'overflowX':'scroll',
+                                              'overflowY': 'scroll',
+                                              'height': '750px'},
+                                 active_cell=active_cell,
+                              #    page_size=25,
                                  ), className='my-3', 
                                  width={'size':5}),
-          # dbc.Col(dcc.Graph(id='player_graph', figure={}))
+          dbc.Col(dcc.Graph(id='player_graph'), width={'size':5}, className='my-3')
      ], justify='center'),
      ], fluid=True)
-
 
 @app.callback(
     [Output('player_tbl', 'data'),
      Output('player_tbl', 'columns'),
      Output('datatable_label', 'children'),
-     Output('dataframe_feats', 'options')],
+     Output('dataframe_feats', 'options'),
+     Output('dataframe_feats', 'value')],
     [Input('skill_sets', 'value'),
-    Input('position', 'value'),]
-)
+     Input('position', 'value')])
 def update_datatable(skills_sets_dropdown, position_dropdown):
     if skills_sets_dropdown == 'Basic Player Data':
         df = basic_player_data.copy()
@@ -393,6 +397,15 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
             df
         columns = special_teams_columns    
         label_ = [f"{position_dropdown} Special Teams Data"]
+     
+    elif skills_sets_dropdown == 'Endurance':
+       df = endurance_data.copy()
+       if position_dropdown != 'All Positions':
+          df = df[df['name'] == position_dropdown].copy()
+       else:
+          df
+       columns = endurance_columns
+       label_ = [f"{position_dropdown} Endurance Data"]
 
     else:
         df = enforcer_data.copy()
@@ -417,8 +430,136 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
             columns_.append(col)
 
     df['sum_quantiles'] = df[columns_].sum(axis=1)
-    df['overall_rank'] = df['sum_quantiles'].rank(method='first', ascending=False).astype('int64')
+    df['overall_rank'] = df['sum_quantiles'].rank(method='first', \
+                                                  ascending=False).astype('int64')
     df = df.sort_values('overall_rank', ascending=False)
-    feats_dropdown = [col['name'] for col in columns]
+    removed_cols = ['rank', 'Salary']
+    feats_dropdown = sorted([
+                    col['name'] for col in columns \
+                         if col['id'] in df.select_dtypes(['float64', 'int64']).columns \
+                              if not any(unwanted_cols in col['id'] for unwanted_cols in removed_cols)
+    ])
 
-    return df.to_dict('records'), columns, label_, feats_dropdown
+    if skills_sets_dropdown == 'Basic Player Data':
+     df = df
+    
+    elif skills_sets_dropdown == 'Offense':
+          new_cols = ['Salary_Rank', 
+                    'overall_rank', 
+                    'fullName',
+                    'Salary_2021-22',
+                    'name',
+                    'assists22',
+                    'goals22',
+                    'shots22',
+                    'faceOffPct22',
+                    'shotPct22',
+                    'gameWinningGoals22',
+                    'overTimeGoals22',
+                    'points22',
+                    'plusMinus22',]
+
+    elif skills_sets_dropdown == 'Special Teams':
+     df = df[['Salary_Rank', 
+               'overall_rank',     
+               'fullName',
+               'Salary_2021-22',
+               'name',
+               'powerPlayGoals22',
+               'powerPlayPoints22',
+               'powerPlayTimeOnIce22',
+               'shortHandedGoals22',
+               'shortHandedPoints22',
+               'shortHandedTimeOnIce22', ]]
+    
+    elif skills_sets_dropdown == 'Endurance':
+     df = df[['Salary_Rank', 
+               'overall_rank',
+               'fullName',
+               'Salary_2021-22'
+               'name',
+               'timeOnIce22',
+               'games22',
+               'shifts22',
+               'blocked22',
+               'timeOnIcePerGame22',
+               'evenTimeOnIcePerGame22',
+               'shortHandedTimeOnIcePerGame22',
+               'powerPlayTimeOnIcePerGame22',]]
+     
+    else:
+     df = df[['Salary_Rank', 
+               'overall_rank',
+               'fullName',
+               'Salary_2021-22',
+               'name',
+               'hits22',
+               'penaltyMinutes22',]]
+
+    return df.to_dict('records'), \
+           columns, \
+           label_, \
+           feats_dropdown, \
+           feats_dropdown[0], \
+
+@app.callback(
+     [Output('player_graph', 'figure')],
+     [Input('player_tbl', 'data'),
+      Input('player_tbl', 'columns'),
+      Input('dataframe_feats', 'value'),
+      Input('skill_sets', 'value'),
+      Input('position', 'value')]
+)
+def update_graph(data,
+                columns,
+                feature, 
+                skill_sets_dropdown, 
+                position_dropdown):
+    data_ = pd.DataFrame(data)
+
+    col_name = [
+          col['id'] for col in columns \
+               if feature == col['name']
+    ][0]
+    x_axis_label = [
+          col['name'] for col in columns \
+               if feature == col['name']
+    ][0]
+
+    data_label_ = np.full_like(data_['fullName'], str(x_axis_label))
+    custom_data = np.stack((data_['overall_rank'], data_['Salary_Rank'], data_label_),axis=-1)
+
+    hover_template = "<b>Player Name: </b> %{text} <br><br>"
+    hover_template += "<b>%{customdata[2]}: </b> %{x} <br>"
+    hover_template += "<b>Salary: </b> $%{y} <br>"
+    hover_template += "<b>Salary Rank: </b> %{customdata[1]} <br>"
+    hover_template += "<b>Player Rank: </b> %{customdata[0]}"
+
+    fig = go.Figure(go.Scatter(
+                        x=data_[str(col_name)],
+                        y=data_['Salary_2021-22'],
+                        mode='markers',
+                        text=data_['fullName'],
+                        customdata=custom_data,
+                        hovertemplate=hover_template,
+                        showlegend=False,
+                        name='playerName',
+                        ))
+
+    fig.update_layout(title={'text': f"<em>Group:</em>{skill_sets_dropdown} <em>Position:</em>{position_dropdown} <em>Data:</em>{feature}",
+                              'y': 0.9,
+                              'x': 0.5,
+                              'xanchor': 'center',
+                              'yanchor': 'top'},
+                      xaxis_title=f"{x_axis_label}",
+                      yaxis_title="Player Salaries 2021-22")
+
+#     fig.add_trace(go.Scatter(x=np.array(data_.iloc[active_cell['row']][col_name]), \
+#                     y=np.array(data_.iloc[active_cell['row']]['Salary_2021-22']),
+                    
+#                     marker_symbol='star',
+#                     marker_size=15,
+#                     showlegend=False))
+#     print(filtered_data)
+
+    return [fig]
