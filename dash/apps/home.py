@@ -4,7 +4,6 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from operator import itemgetter
 
 from app import app
 
@@ -99,10 +98,9 @@ df = df[df['Salary_2021-22'] != 0.0]
 df['id'] = df['fullName']
 df.set_index('id', inplace=True, drop=False)
 
-active_cell = {'row': 0, 'column': 1, 'column_id': 'Player Name', 'row_id': 0}
+# active_cell = {'row': 0, 'column': 1, 'column_id': 'Player Name', 'row_id': 0}
 
 # --------------------------- Inital Data Table DataFrame -------------------------------------
-active_cell = {'row': 0, 'column': 1, 'column_id': 'Player Name', 'row_id': 0}
 
 basic_player_data = df[basic_player].sort_values('Salary_2021-22', ascending=False)
 
@@ -354,11 +352,11 @@ layout = dbc.Container([
                                  style_table={'overflowX':'scroll',
                                               'overflowY': 'scroll',
                                               'height': '750px'},
-                                 active_cell=active_cell,
+                              #    active_cell=active_cell,
                               #    page_size=25,
                                  ), className='my-3', 
-                                 width={'size':5}),
-          dbc.Col(dcc.Graph(id='player_graph'), width={'size':5}, className='my-3')
+                                 width=6),
+          dbc.Col(dcc.Graph(id='player_graph'), width=6, className='my-3')
      ], justify='left'),
      ], fluid=True)
 
@@ -440,61 +438,61 @@ def update_datatable(skills_sets_dropdown, position_dropdown):
                               if not any(unwanted_cols in col['id'] for unwanted_cols in removed_cols)
     ])
 
-    if skills_sets_dropdown == 'Basic Player Data':
-     df = df
+#     if skills_sets_dropdown == 'Basic Player Data':
+#      df = df
     
-    elif skills_sets_dropdown == 'Offense':
-          new_cols = ['Salary_Rank', 
-                    'overall_rank', 
-                    'fullName',
-                    'Salary_2021-22',
-                    'name',
-                    'assists22',
-                    'goals22',
-                    'shots22',
-                    'faceOffPct22',
-                    'shotPct22',
-                    'gameWinningGoals22',
-                    'overTimeGoals22',
-                    'points22',
-                    'plusMinus22',]
+#     elif skills_sets_dropdown == 'Offense':
+#           new_cols = ['Salary_Rank', 
+#                     'overall_rank', 
+#                     'fullName',
+#                     'Salary_2021-22',
+#                     'name',
+#                     'assists22',
+#                     'goals22',
+#                     'shots22',
+#                     'faceOffPct22',
+#                     'shotPct22',
+#                     'gameWinningGoals22',
+#                     'overTimeGoals22',
+#                     'points22',
+#                     'plusMinus22',]
 
-    elif skills_sets_dropdown == 'Special Teams':
-     df = df[['Salary_Rank', 
-               'overall_rank',     
-               'fullName',
-               'Salary_2021-22',
-               'name',
-               'powerPlayGoals22',
-               'powerPlayPoints22',
-               'powerPlayTimeOnIce22',
-               'shortHandedGoals22',
-               'shortHandedPoints22',
-               'shortHandedTimeOnIce22', ]]
+#     elif skills_sets_dropdown == 'Special Teams':
+#      df = df[['Salary_Rank', 
+#                'overall_rank',     
+#                'fullName',
+#                'Salary_2021-22',
+#                'name',
+#                'powerPlayGoals22',
+#                'powerPlayPoints22',
+#                'powerPlayTimeOnIce22',
+#                'shortHandedGoals22',
+#                'shortHandedPoints22',
+#                'shortHandedTimeOnIce22', ]]
     
-    elif skills_sets_dropdown == 'Endurance':
-     df = df[['Salary_Rank', 
-               'overall_rank',
-               'fullName',
-               'Salary_2021-22'
-               'name',
-               'timeOnIce22',
-               'games22',
-               'shifts22',
-               'blocked22',
-               'timeOnIcePerGame22',
-               'evenTimeOnIcePerGame22',
-               'shortHandedTimeOnIcePerGame22',
-               'powerPlayTimeOnIcePerGame22',]]
+#     elif skills_sets_dropdown == 'Endurance':
+#      df = df[['Salary_Rank', 
+#                'overall_rank',
+#                'fullName',
+#                'Salary_2021-22'
+#                'name',
+#                'timeOnIce22',
+#                'games22',
+#                'shifts22',
+#                'blocked22',
+#                'timeOnIcePerGame22',
+#                'evenTimeOnIcePerGame22',
+#                'shortHandedTimeOnIcePerGame22',
+#                'powerPlayTimeOnIcePerGame22',]]
      
-    else:
-     df = df[['Salary_Rank', 
-               'overall_rank',
-               'fullName',
-               'Salary_2021-22',
-               'name',
-               'hits22',
-               'penaltyMinutes22',]]
+#     else:
+#      df = df[['Salary_Rank', 
+#                'overall_rank',
+#                'fullName',
+#                'Salary_2021-22',
+#                'name',
+#                'hits22',
+#                'penaltyMinutes22',]]
 
     return df.to_dict('records'), \
            columns, \
@@ -553,17 +551,17 @@ def update_graph(data,
                               # 'x': 0.5,
                               # 'xanchor': 'center',
                               # 'yanchor': 'top'},
-                      xaxis_title=f"{x_axis_label}",
-                      yaxis_title="Player Salaries 2021-22",
-                      autosize=False,
-                      width=750,
-                      height=750,
+                      xaxis_title=f"<b>{x_axis_label}</b>",
+                      yaxis_title="<b>Player Salaries 2021-22</b>",
+                      autosize=True,
+                    #   width=750,
+                    #   height=750,
                       margin=dict(
                          l=15,
                          r=15,
                          b=15,
                          t=50,
-                         pad=4
-                      ))
+                         pad=4)
+                      )
 
     return [fig]
