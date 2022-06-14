@@ -359,7 +359,7 @@ layout = dbc.Container([
                                  ), className='my-3', 
                                  width={'size':5}),
           dbc.Col(dcc.Graph(id='player_graph'), width={'size':5}, className='my-3')
-     ], justify='center'),
+     ], justify='left'),
      ], fluid=True)
 
 @app.callback(
@@ -544,22 +544,26 @@ def update_graph(data,
                         hovertemplate=hover_template,
                         showlegend=False,
                         name='playerName',
+
                         ))
 
-    fig.update_layout(title={'text': f"<em>Group:</em>{skill_sets_dropdown} <em>Position:</em>{position_dropdown} <em>Data:</em>{feature}",
-                              'y': 0.9,
-                              'x': 0.5,
-                              'xanchor': 'center',
-                              'yanchor': 'top'},
+    fig.update_layout(title_text= f"<em>Group:</em>{skill_sets_dropdown} <em>Position:</em>{position_dropdown} <em>Data:</em>{feature}",
+                      title_y=0.96,
+                      title_x=0.5,
+                              # 'x': 0.5,
+                              # 'xanchor': 'center',
+                              # 'yanchor': 'top'},
                       xaxis_title=f"{x_axis_label}",
-                      yaxis_title="Player Salaries 2021-22")
-
-#     fig.add_trace(go.Scatter(x=np.array(data_.iloc[active_cell['row']][col_name]), \
-#                     y=np.array(data_.iloc[active_cell['row']]['Salary_2021-22']),
-                    
-#                     marker_symbol='star',
-#                     marker_size=15,
-#                     showlegend=False))
-#     print(filtered_data)
+                      yaxis_title="Player Salaries 2021-22",
+                      autosize=False,
+                      width=750,
+                      height=750,
+                      margin=dict(
+                         l=15,
+                         r=15,
+                         b=15,
+                         t=50,
+                         pad=4
+                      ))
 
     return [fig]
