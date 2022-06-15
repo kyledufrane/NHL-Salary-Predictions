@@ -117,7 +117,8 @@ for idx, filter_ in enumerate(filter_list):
      for col in dff.columns:
           if dff[col].dtype != 'object' and 'Rank' not in col:
                dff.sort_values(f"{col}", ascending=False, inplace=True)
-               df[f'{col}_quantile'] = pd.qcut(dff[col].rank(method='first'),5, duplicates='drop')
+               df[f'{col}_quantile'] = pd.qcut(dff[col].rank(method='first'),5, duplicates='drop', labels=[0,1,2,3,4])
+
      for col_str in filter_:
           for col in df.columns:
                if 'quantile' in col and col_str in col:
@@ -140,7 +141,7 @@ for idx, filter_ in enumerate(filter_list):
                dff = df[endurance_columns_]
           df[f"{filter_string}_quantiles_total"] = dff.sum(axis=1)
           df.sort_values(f"{filter_string}_quantiles_total", ascending=False, inplace=True)
-          df[f"{filter_string}_overall_rank"] = df[f"{filter_string}_quantiles_total"].rank(method='first').astype('int64')
+          df[f"{filter_string}_overall_rank"] = df[f"{filter_string}_quantiles_total"].rank(method='first', ascending=False).astype('int64')
 
 overall_rank = []
 
@@ -224,7 +225,7 @@ endurance = [
      'powerPlayTimeOnIcePerGame22',
 ]
 
-basic_player_data = df[basic_player].sort_values('salary_2021-22', ascending=False)
+basic_player_data = df[basic_player].sort_values('salary_2021-22', ascending=False).copy()
 offense_data = df[offense].copy()
 special_team_data = df[special_teams].copy()
 enforcer_data = df[enforcer].copy()
@@ -314,8 +315,9 @@ layout = dbc.Container([
     [Input('skill_sets', 'value'),
      Input('position', 'value'),
      Input('player_graph', 'selectedData'),
-     Input('player_tbl', 'columns')])
-def update_datatable(skill_sets_dropdown, position_dropdown, selected_data, columns):
+     Input('player_tbl', 'columns'),
+     Input('dataframe_feats', 'value')])
+def update_datatable(skill_sets_dropdown,position_dropdown,selected_data,columns,dataframe_feats_dropdown):
     if skill_sets_dropdown == 'Basic Player Data':
         df = basic_player_data.copy()
         if position_dropdown != 'All Positions':
@@ -551,68 +553,86 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selected_data, colu
 
     df.sort_values('salary_rank', inplace=True)
 
-    if selected_data is None:
-     selected_player = df.iloc[0]['fullName']
-    else:
-     selected_player = selected_data['points'][0]['text']
-    
-    selected_player_stats = df[df['fullName'] == selected_player]
-    dataframe_columns_ = []
-    
-    for col in df.columns:
-     if df[col].dtype != 'object':
-          if skill_sets_dropdown != 'Basic Player Data':
-               if 'salary_rank' in col or 'salary' in col:
-                    continue
+    try: 
+     if selected_data is None:
+          selected_player = df.iloc[0]['fullName']
+     else:
+          selected_player = selected_data['points'][0]['text']
+     
+     selected_player_stats = df[df['fullName'] == selected_player]
+     
+     dataframe_columns_ = []
+     
+     for col in df.columns:
+          if df[col].dtype != 'object':
+               if skill_sets_dropdown != 'Basic Player Data':
+                    if 'salary_rank' in col or 'salary' in col:
+                         continue
+                    else:
+                         dataframe_columns_.append(col)
                else:
                     dataframe_columns_.append(col)
-          else:
-               dataframe_columns_.append(col)
 
-    changed_player = 'None'
-    change = False
-    
-    if str(selected_player_stats['fullName'][0]) == str(changed_player):
-          change = False
-          raise PreventUpdate
-    else:
-          change = True
-
-    gauges = []
-
-    if change:
-     for col in dataframe_columns_:
-          qcut_bins = {}
-          _, qcut_bins[f'{col}_bins'] = pd.qcut(df[col], 3, retbins=True)
-          
-          if 'rank' in col or 'Age' in col:
-               gauges.append(dbc.Col(daq.Gauge(value=selected_player_stats[col][0],
-                                             max=df[col].max(), 
-                                             min=df[col].min(),
-                                             size=150,
-                                             label=[col_['name'] for col_ in columns if col_['id'] == col][0],
-                                             color={'gradient':True,'ranges':{'green':[qcut_bins[f'{col}_bins'][0], qcut_bins[f'{col}_bins'][1]], 
-                                                                                'yellow':[qcut_bins[f'{col}_bins'][1], qcut_bins[f'{col}_bins'][2]],
-                                                                                'red':[qcut_bins[f'{col}_bins'][2], qcut_bins[f'{col}_bins'][3]]}})))
-
-          else:
-               gauges.append(dbc.Col(daq.Gauge(value=selected_player_stats[col][0],
-                                             max=df[col].max(), 
-                                             min=df[col].min(),
-                                             size=150,
-                                             label=[col_['name'] for col_ in columns if col_['id'] == col][0],
-                                             color={'gradient':True,'ranges':{'red':[qcut_bins[f'{col}_bins'][0], qcut_bins[f'{col}_bins'][1]], 
-                                                                                'yellow':[qcut_bins[f'{col}_bins'][1], qcut_bins[f'{col}_bins'][2]],
-                                                                                'green':[qcut_bins[f'{col}_bins'][2], qcut_bins[f'{col}_bins'][3]]}})))
-     changed_player = str(selected_player_stats['fullName'][0])
+     changed_player = 'None'
      change = False
+     
+     if str(selected_player_stats['fullName']) == str(changed_player):
+               change = False
+               raise PreventUpdate
+     else:
+               change = True
+
+     gauges = []
+
+     if change:
+          for col in dataframe_columns_:
+               max_ = df[col].max()
+               min_ = df[col].min()
+               mean_ = df[col].mean()
+               above_avg = mean_ + ((max_ - mean_) // 2)
+
+               if 'rank' in col or 'Age' in col:
+                    gauges.append(dbc.Col(daq.Gauge(value=selected_player_stats[col][0],
+                                                  max=df[col].max(), 
+                                                  min=df[col].min(),
+                                                  size=150,
+                                                  label=[col_['name'] for col_ in columns if col_['id'] == col][0],
+                                                  color={'gradient':True,'ranges':{'green':[min_, mean_], 
+                                                                                'yellow':[mean_, above_avg],
+                                                                                'red':[above_avg, max_]}})))
+
+               else:
+                    gauges.append(dbc.Col(daq.Gauge(value=selected_player_stats[col][0],
+                                                  max=df[col].max(), 
+                                                  min=df[col].min(),
+                                                  size=150,
+                                                  label=[col_['name'] for col_ in columns if col_['id'] == col][0],
+                                                  color={'gradient':True,'ranges':{'red':[min_, mean_], 
+                                                                                     'yellow':[mean_, above_avg],
+                                                                                     'green':[above_avg, max_]}})))
+
+          changed_player = str(selected_player_stats['fullName'][0])
+          change = False
+    except:
+     pass
+
+    feats_dropdown_val = ''
+
+    if dataframe_feats_dropdown is not None:
+     if feats_dropdown[0] == dataframe_feats_dropdown:
+          feats_dropdown_val = feats_dropdown[0]
+     else:
+          feats_dropdown_val = dataframe_feats_dropdown
+    else:
+     feats_dropdown_val = feats_dropdown[0]
 
     return df.to_dict('records'), \
            columns, \
            label_, \
            feats_dropdown, \
-           feats_dropdown[0], \
-           gauges
+           feats_dropdown_val, \
+           gauges, \
+
 
 @app.callback(
      [Output('player_graph', 'figure')],
@@ -620,13 +640,15 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selected_data, colu
       Input('player_tbl', 'columns'),
       Input('dataframe_feats', 'value'),
       Input('skill_sets', 'value'),
-      Input('position', 'value')]
+      Input('position', 'value'),
+      Input('dataframe_feats', 'value')]
 )
 def update_graph(data,
                 columns,
                 feature, 
                 skill_sets_dropdown, 
-                position_dropdown):
+                position_dropdown,
+                features_dropdown):
     
     data_ = pd.DataFrame(data)
 
@@ -634,12 +656,8 @@ def update_graph(data,
           col['id'] for col in columns \
                if feature == col['name']
     ][0]
-    x_axis_label = [
-          col['name'] for col in columns \
-               if feature == col['name']
-    ][0]
 
-    data_label_ = np.full_like(data_['fullName'], str(x_axis_label))
+    data_label_ = np.full_like(data_['fullName'], str(features_dropdown))
 
     if skill_sets_dropdown == 'Basic Player Data':
      # if columns != 'height'
@@ -703,7 +721,7 @@ def update_graph(data,
     fig.update_layout(title_text= f"<em>Group:</em>{skill_sets_dropdown} <em>Position:</em>{position_dropdown} <em>Data:</em>{feature}",
                       title_y=0.96,
                       title_x=0.5,
-                      xaxis_title=f"<b>{x_axis_label}</b>",
+                      xaxis_title=f"<b>{features_dropdown}</b>",
                       yaxis_title="<b>Player Salaries 2021-22</b>",
                       autosize=True,
                       clickmode='event+select',
