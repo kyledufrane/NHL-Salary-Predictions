@@ -1,12 +1,10 @@
-from dataclasses import dataclass
 from dash import html, dash_table, Input, Output, callback, dcc
+import dash_daq as daq
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-
-import json
-
+from dash.exceptions import PreventUpdate
 from app import app
 
 # --------------------------- Base Column Filters ------------------------------------------------------
@@ -34,8 +32,8 @@ dropped_columns = [
 
 offense_base = [
      'fullName',
-     'Salary_Rank',
-     'Salary_2021-22',
+     'salary_rank',
+     'salary_2021-22',
      'name',
      'assists22',
      'goals22',
@@ -49,8 +47,8 @@ offense_base = [
 ]
 special_teams_base = [
      'fullName',
-     'Salary_2021-22',
-     'Salary_Rank',
+     'salary_2021-22',
+     'salary_rank',
      'name',
      'powerPlayGoals22',
      'powerPlayPoints22',
@@ -61,15 +59,15 @@ special_teams_base = [
 ]
 enforcer_base = [
      'fullName',
-     'Salary_2021-22',
-     'Salary_Rank',
+     'salary_2021-22',
+     'salary_rank',
      'name',
      'hits22',
      'penaltyMinutes22',
 ]
 endurance_base = [
      'fullName',
-     'Salary_2021-22',
+     'salary_2021-22',
      'name',
      'timeOnIce22',
      'games22',
@@ -88,9 +86,10 @@ filter_str = ['offense', 'special_teams', 'enforcer', 'endurance']
 
 
 df = pd.read_csv('~/Desktop/NHL-Salary-Predictions/data/cleaned_player_df_dash.csv').drop(dropped_columns, axis=1)
+df = df.rename(columns={'Salary_2021-22': 'salary_2021-22'})
 df['shootsCatches'] = df['shootsCatches'].replace('L', 'Left').replace('R', 'Right')
-df['Salary_Rank'] = df['Salary_2021-22'].rank(method='first', ascending=False)
-df = df[df['Salary_2021-22'] != 0.0]
+df['salary_rank'] = df['salary_2021-22'].rank(method='first', ascending=False).astype('int64')
+df = df[df['salary_2021-22'] != 0.0]
 df['timeOnIce22'] = df['timeOnIce22'] \
                                         .str.replace(':', '.').astype(float)
 df['timeOnIcePerGame22'] = df['timeOnIcePerGame22'] \
@@ -117,7 +116,8 @@ for idx, filter_ in enumerate(filter_list):
      dff = df[filter_].copy()
      for col in dff.columns:
           if dff[col].dtype != 'object' and 'Rank' not in col:
-               df[f'{col}_quantile'] = pd.qcut(dff[col].rank(method='first'),5,labels=False).copy()
+               dff.sort_values(f"{col}", ascending=False, inplace=True)
+               df[f'{col}_quantile'] = pd.qcut(dff[col].rank(method='first'),5, duplicates='drop')
      for col_str in filter_:
           for col in df.columns:
                if 'quantile' in col and col_str in col:
@@ -139,7 +139,8 @@ for idx, filter_ in enumerate(filter_list):
           else:
                dff = df[endurance_columns_]
           df[f"{filter_string}_quantiles_total"] = dff.sum(axis=1)
-          df[f"{filter_string}_overall_rank"] = df[f"{filter_string}_quantiles_total"].rank(method='first', ascending=False).astype('int64')
+          df.sort_values(f"{filter_string}_quantiles_total", ascending=False, inplace=True)
+          df[f"{filter_string}_overall_rank"] = df[f"{filter_string}_quantiles_total"].rank(method='first').astype('int64')
 
 overall_rank = []
 
@@ -147,18 +148,17 @@ for col in df.columns:
      if 'overall_rank' in col:
           overall_rank.append(col)
 df['overall_rank_sum'] = df[overall_rank].sum(axis=1)
+df.sort_values('overall_rank_sum', ascending=False, inplace=True)
 df['overall_rank'] = df['overall_rank_sum'].rank(method='first').astype('int64')
-
-# df = df.sort_values('overall_rank', ascending=False)
 
 # active_cell = {'row': 0, 'column': 1, 'column_id': 'Player Name', 'row_id': 0}
 
 # --------------------------- Column Filters After Formatting------------------------------------------
 basic_player = [
      'overall_rank',
-     'Salary_Rank',
+     'salary_rank',
      'fullName',
-     'Salary_2021-22',
+     'salary_2021-22',
      'name',
      'currentAge',
      'height',
@@ -173,8 +173,8 @@ basic_player = [
 offense = [
      'offense_overall_rank',
      'fullName',
-     'Salary_Rank',
-     'Salary_2021-22',
+     'salary_rank',
+     'salary_2021-22',
      'name',
      'assists22',
      'goals22',
@@ -188,9 +188,9 @@ offense = [
 ]
 special_teams = [
      'special_teams_overall_rank',
-     'Salary_Rank',
+     'salary_rank',
      'fullName',
-     'Salary_2021-22',
+     'salary_2021-22',
      'name',
      'powerPlayGoals22',
      'powerPlayPoints22',
@@ -202,17 +202,17 @@ special_teams = [
 enforcer = [
      'enforcer_overall_rank',
      'fullName',
-     'Salary_2021-22',
-     'Salary_Rank',
+     'salary_2021-22',
+     'salary_rank',
      'name',
      'hits22',
      'penaltyMinutes22',
 ]
 endurance = [
-     'Salary_Rank',
+     'salary_rank',
      'endurance_overall_rank',
      'fullName',
-     'Salary_2021-22',
+     'salary_2021-22',
      'name',
      'timeOnIce22',
      'games22',
@@ -224,7 +224,7 @@ endurance = [
      'powerPlayTimeOnIcePerGame22',
 ]
 
-basic_player_data = df[basic_player].sort_values('Salary_2021-22', ascending=False)
+basic_player_data = df[basic_player].sort_values('salary_2021-22', ascending=False)
 offense_data = df[offense].copy()
 special_team_data = df[special_teams].copy()
 enforcer_data = df[enforcer].copy()
@@ -295,11 +295,13 @@ layout = dbc.Container([
                                               'overflowY': 'scroll',
                                               'height': '750px'},
                               #    active_cell=active_cell,
-                              #    page_size=25,
                                  ), className='my-3', 
                                  width=6),
-          dbc.Col(dcc.Graph(id='player_graph'), width=6, className='my-3')
+          dbc.Col(dcc.Graph(id='player_graph'), width=6, className='my-3'),
      ], justify='left'),
+     dbc.Row(
+          id='gauges',
+     )
      ], fluid=True)
 
 @app.callback(
@@ -307,11 +309,13 @@ layout = dbc.Container([
      Output('player_tbl', 'columns'),
      Output('datatable_label', 'children'),
      Output('dataframe_feats', 'options'),
-     Output('dataframe_feats', 'value')],
+     Output('dataframe_feats', 'value'),
+     Output('gauges', 'children')],
     [Input('skill_sets', 'value'),
      Input('position', 'value'),
-     Input('player_graph', 'selectedData')])
-def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
+     Input('player_graph', 'selectedData'),
+     Input('player_tbl', 'columns')])
+def update_datatable(skill_sets_dropdown, position_dropdown, selected_data, columns):
     if skill_sets_dropdown == 'Basic Player Data':
         df = basic_player_data.copy()
         if position_dropdown != 'All Positions':
@@ -329,7 +333,7 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
         else:
             df
         label_ = [f"{position_dropdown} Offensive Player Data"]
-     #    # Formatting for % in data table and creating quantiles
+        # Formatting for % in data table and creating quantiles
         for col in df.columns:
           if "Pct" in col:
                df[col] = df[col]/100
@@ -362,24 +366,22 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
 
     if skill_sets_dropdown == 'Basic Player Data':
           
-          df['height_inches'] = df['height'].apply(feet_to_float)
-
           columns = [
                dict(id='overall_rank',
                     name='Overall Rank'),
-               dict(id='Salary_Rank',
+               dict(id='salary_rank',
                     name='Salary Rank',
                     type='numeric'),
                dict(id='fullName', 
                     name='Player Name'),
-               dict(id='Salary_2021-22',
+               dict(id='salary_2021-22',
                     name='Salary',
                     type='numeric',
                     format=money),
                dict(id='currentAge',
                     name='Age'),
                dict(id='height_inches',
-                    name='Height',
+                    name='Height (Inches)',
                     type='any'),
                dict(id='weight',
                     name='Weight'),
@@ -401,14 +403,14 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
 
     elif skill_sets_dropdown == 'Offense':
           columns = [
-               dict(id='Salary_Rank',
+               dict(id='salary_rank',
                     name='Salary Rank',
                     type='numeric'),
                dict(id='offense_overall_rank',
                     name='Offensive Player Rank',
                     type='numeric'),
                dict(id='fullName', name='Player Name'),
-               dict(id='Salary_2021-22',
+               dict(id='salary_2021-22',
                     name='Salary',
                     type='numeric',
                     format=money),
@@ -421,10 +423,7 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
                     name='Total Goals',
                     type='numeric'),
                dict(id='shots22',
-                    name='Total Shots'),     #    # Formatting for % in data table and creating quantiles
-     #    for col in df.columns:
-     #      if "Pct" in col:
-     #           df[col] = df[col]/100
+                    name='Total Shots'),  
                dict(id='faceOffPct22',
                     name='Face Off Percentage',
                     type='numeric',
@@ -451,7 +450,7 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
 
     elif skill_sets_dropdown == 'Special Teams':
           columns = [
-               dict(id='Salary_Rank',
+               dict(id='salary_rank',
                     name='Salary Rank',
                     type='numeric'),
                dict(id='special_teams_overall_rank',
@@ -459,7 +458,7 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
                     type='numeric'),
                dict(id='fullName',
                     name='Player Name'),
-               dict(id='Salary_2021-22',
+               dict(id='salary_2021-22',
                     name='Salary',
                     type='numeric',
                     format=money),\
@@ -488,13 +487,13 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
 
     elif skill_sets_dropdown == 'Endurance':
           columns = [
-               dict(id='Salary_Rank', 
+               dict(id='salary_rank', 
                     name='Salary Rank'),
                dict(id='endurance_overall_rank', 
                     name='Endurance Player Rank'),
                dict(id='fullName', 
                     name='Player Name'),
-               dict(id='Salary_2021-22',
+               dict(id='salary_2021-22',
                     name='Salary 2021-22',
                     type='numeric',
                     format=money),
@@ -527,14 +526,14 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
 
     else:
      columns = [
-          dict(id='Salary_Rank',
+          dict(id='salary_rank',
                name='Salary Rank',
                type='numeric'),
           dict(id='enforcer_overall_rank',
                name='Enforcer Overall Rank',
                type='numeric'),
           dict(id='fullName', name='Player Name'),
-          dict(id='Salary_2021-22',
+          dict(id='salary_2021-22',
                name='Salary',
                type='numeric',
                format=money),
@@ -543,18 +542,77 @@ def update_datatable(skill_sets_dropdown, position_dropdown, selection_data):
           dict(id='hits22', name='Total Hits',type='numeric'),
           dict(id='penaltyMinutes22', name='Total Penalty Minutes', type='numeric')
 ]
-    removed_cols = ['rank', 'Salary']
+    removed_cols = ['rank', 'salary']
     feats_dropdown = sorted([
                     col['name'] for col in columns \
                          if col['id'] in df.select_dtypes(['float64', 'int64']).columns \
                               if not any(unwanted_cols in col['id'] for unwanted_cols in removed_cols)
-    ])     
-    print(selection_data)
+    ]) 
+
+    df.sort_values('salary_rank', inplace=True)
+
+    if selected_data is None:
+     selected_player = df.iloc[0]['fullName']
+    else:
+     selected_player = selected_data['points'][0]['text']
+    
+    selected_player_stats = df[df['fullName'] == selected_player]
+    dataframe_columns_ = []
+    
+    for col in df.columns:
+     if df[col].dtype != 'object':
+          if skill_sets_dropdown != 'Basic Player Data':
+               if 'salary_rank' in col or 'salary' in col:
+                    continue
+               else:
+                    dataframe_columns_.append(col)
+          else:
+               dataframe_columns_.append(col)
+
+    changed_player = 'None'
+    change = False
+    
+    if str(selected_player_stats['fullName'][0]) == str(changed_player):
+          change = False
+          raise PreventUpdate
+    else:
+          change = True
+
+    gauges = []
+
+    if change:
+     for col in dataframe_columns_:
+          qcut_bins = {}
+          _, qcut_bins[f'{col}_bins'] = pd.qcut(df[col], 3, retbins=True)
+          
+          if 'rank' in col or 'Age' in col:
+               gauges.append(dbc.Col(daq.Gauge(value=selected_player_stats[col][0],
+                                             max=df[col].max(), 
+                                             min=df[col].min(),
+                                             size=150,
+                                             label=[col_['name'] for col_ in columns if col_['id'] == col][0],
+                                             color={'gradient':True,'ranges':{'green':[qcut_bins[f'{col}_bins'][0], qcut_bins[f'{col}_bins'][1]], 
+                                                                                'yellow':[qcut_bins[f'{col}_bins'][1], qcut_bins[f'{col}_bins'][2]],
+                                                                                'red':[qcut_bins[f'{col}_bins'][2], qcut_bins[f'{col}_bins'][3]]}})))
+
+          else:
+               gauges.append(dbc.Col(daq.Gauge(value=selected_player_stats[col][0],
+                                             max=df[col].max(), 
+                                             min=df[col].min(),
+                                             size=150,
+                                             label=[col_['name'] for col_ in columns if col_['id'] == col][0],
+                                             color={'gradient':True,'ranges':{'red':[qcut_bins[f'{col}_bins'][0], qcut_bins[f'{col}_bins'][1]], 
+                                                                                'yellow':[qcut_bins[f'{col}_bins'][1], qcut_bins[f'{col}_bins'][2]],
+                                                                                'green':[qcut_bins[f'{col}_bins'][2], qcut_bins[f'{col}_bins'][3]]}})))
+     changed_player = str(selected_player_stats['fullName'][0])
+     change = False
+
     return df.to_dict('records'), \
            columns, \
            label_, \
            feats_dropdown, \
            feats_dropdown[0], \
+           gauges
 
 @app.callback(
      [Output('player_graph', 'figure')],
@@ -569,6 +627,7 @@ def update_graph(data,
                 feature, 
                 skill_sets_dropdown, 
                 position_dropdown):
+    
     data_ = pd.DataFrame(data)
 
     col_name = [
@@ -583,7 +642,9 @@ def update_graph(data,
     data_label_ = np.full_like(data_['fullName'], str(x_axis_label))
 
     if skill_sets_dropdown == 'Basic Player Data':
-     custom_data = np.stack((data_['overall_rank'], data_['Salary_Rank'], data_label_),axis=-1)
+     # if columns != 'height'
+
+     custom_data = np.stack((data_['overall_rank'], data_['salary_rank'], data_label_),axis=-1)
 
      hover_template = "<b>Player Name: </b> %{text} <br><br>"
      hover_template += "<b>%{customdata[2]}: </b> %{x} <br>"
@@ -592,7 +653,7 @@ def update_graph(data,
      hover_template += "<b>Player Rank: </b> %{customdata[0]}"
 
     elif skill_sets_dropdown == 'Offense':
-     custom_data = np.stack((data_['offense_overall_rank'], data_['Salary_Rank'], data_label_),axis=-1)
+     custom_data = np.stack((data_['offense_overall_rank'], data_['salary_rank'], data_label_),axis=-1)
 
      hover_template = "<b>Player Name: </b> %{text} <br><br>"
      hover_template += "<b>%{customdata[2]}: </b> %{x} <br>"
@@ -601,7 +662,7 @@ def update_graph(data,
      hover_template += "<b>Offensive Player Rank: </b> %{customdata[0]}"
 
     elif skill_sets_dropdown == 'Special Teams':
-     custom_data = np.stack((data_['special_teams_overall_rank'], data_['Salary_Rank'], data_label_),axis=-1)
+     custom_data = np.stack((data_['special_teams_overall_rank'], data_['salary_rank'], data_label_),axis=-1)
 
      hover_template = "<b>Player Name: </b> %{text} <br><br>"
      hover_template += "<b>%{customdata[2]}: </b> %{x} <br>"
@@ -610,7 +671,7 @@ def update_graph(data,
      hover_template += "<b>Special Teams Player Rank: </b> %{customdata[0]}"
     
     elif skill_sets_dropdown == 'Endurance':
-     custom_data = np.stack((data_['endurance_overall_rank'], data_['Salary_Rank'], data_label_),axis=-1)
+     custom_data = np.stack((data_['endurance_overall_rank'], data_['salary_rank'], data_label_),axis=-1)
 
      hover_template = "<b>Player Name: </b> %{text} <br><br>"
      hover_template += "<b>%{customdata[2]}: </b> %{x} <br>"
@@ -619,7 +680,7 @@ def update_graph(data,
      hover_template += "<b>Endurance Player Rank: </b> %{customdata[0]}"
 
     else:
-     custom_data = np.stack((data_['enforcer_overall_rank'], data_['Salary_Rank'], data_label_),axis=-1)
+     custom_data = np.stack((data_['enforcer_overall_rank'], data_['salary_rank'], data_label_),axis=-1)
 
      hover_template = "<b>Player Name: </b> %{text} <br><br>"
      hover_template += "<b>%{customdata[2]}: </b> %{x} <br>"
@@ -629,7 +690,7 @@ def update_graph(data,
    
     fig = go.Figure(go.Scatter(
                         x=data_[str(col_name)],
-                        y=data_['Salary_2021-22'],
+                        y=data_['salary_2021-22'],
                         mode='markers',
                         text=data_['fullName'],
                         customdata=custom_data,
