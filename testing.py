@@ -1,142 +1,104 @@
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, dash_table, dcc, html
+from dash.dependencies import Input, Output
 import pandas as pd
-import plotly.express as px
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminder2007.csv')
+# add an id column and set it as the index
+# in this case the unique ID is just the country name, so we could have just
+# renamed 'country' to 'id' (but given it the display name 'country'), but
+# here it's duplicated just to show the more general pattern.
+df['id'] = df['country']
+df.set_index('id', inplace=True, drop=False)
 
-app = Dash(__name__, external_stylesheets=external_stylesheets)
-
-df = pd.read_csv('https://plotly.github.io/datasets/country_indicators.csv')
-
+app = Dash(__name__)
 
 app.layout = html.Div([
-    html.Div([
-
-        html.Div([
-            dcc.Dropdown(
-                df['Indicator Name'].unique(),
-                'Fertility rate, total (births per woman)',
-                id='crossfilter-xaxis-column',
-            ),
-            dcc.RadioItems(
-                ['Linear', 'Log'],
-                'Linear',
-                id='crossfilter-xaxis-type',
-                labelStyle={'display': 'inline-block', 'marginTop': '5px'}
-            )
+    dash_table.DataTable(
+        id='datatable-row-ids',
+        columns=[
+            {'name': i, 'id': i, 'deletable': True} for i in df.columns
+            # omit the id column
+            if i != 'id'
         ],
-        style={'width': '49%', 'display': 'inline-block'}),
-
-        html.Div([
-            dcc.Dropdown(
-                df['Indicator Name'].unique(),
-                'Life expectancy at birth, total (years)',
-                id='crossfilter-yaxis-column'
-            ),
-            dcc.RadioItems(
-                ['Linear', 'Log'],
-                'Linear',
-                id='crossfilter-yaxis-type',
-                labelStyle={'display': 'inline-block', 'marginTop': '5px'}
-            )
-        ], style={'width': '49%', 'float': 'right', 'display': 'inline-block'})
-    ], style={
-        'padding': '10px 5px'
-    }),
-
-    html.Div([
-        dcc.Graph(
-            id='crossfilter-indicator-scatter',
-            hoverData={'points': [{'customdata': 'Japan'}]}
-        )
-    ], style={'width': '49%', 'display': 'inline-block', 'padding': '0 20'}),
-    html.Div([
-        dcc.Graph(id='x-time-series'),
-        dcc.Graph(id='y-time-series'),
-    ], style={'display': 'inline-block', 'width': '49%'}),
-
-    html.Div(dcc.Slider(
-        df['Year'].min(),
-        df['Year'].max(),
-        step=None,
-        id='crossfilter-year--slider',
-        value=df['Year'].max(),
-        marks={str(year): str(year) for year in df['Year'].unique()}
-    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+        data=df.to_dict('records'),
+        editable=True,
+        filter_action="native",
+        sort_action="native",
+        sort_mode='multi',
+        row_selectable='multi',
+        row_deletable=True,
+        selected_rows=[],
+        page_action='native',
+        page_current= 0,
+        page_size= 10,
+    ),
+    html.Div(id='datatable-row-ids-container')
 ])
 
 
 @app.callback(
-    Output('crossfilter-indicator-scatter', 'figure'),
-    Input('crossfilter-xaxis-column', 'value'),
-    Input('crossfilter-yaxis-column', 'value'),
-    Input('crossfilter-xaxis-type', 'value'),
-    Input('crossfilter-yaxis-type', 'value'),
-    Input('crossfilter-year--slider', 'value'))
-def update_graph(xaxis_column_name, yaxis_column_name,
-                 xaxis_type, yaxis_type,
-                 year_value):
-    dff = df[df['Year'] == year_value]
+    Output('datatable-row-ids-container', 'children'),
+    Input('datatable-row-ids', 'derived_virtual_row_ids'),
+    Input('datatable-row-ids', 'selected_row_ids'),
+    Input('datatable-row-ids', 'active_cell'))
+def update_graphs(row_ids, selected_row_ids, active_cell):
+    # When the table is first rendered, `derived_virtual_data` and
+    # `derived_virtual_selected_rows` will be `None`. This is due to an
+    # idiosyncrasy in Dash (unsupplied properties are always None and Dash
+    # calls the dependent callbacks when the component is first rendered).
+    # So, if `rows` is `None`, then the component was just rendered
+    # and its value will be the same as the component's dataframe.
+    # Instead of setting `None` in here, you could also set
+    # `derived_virtual_data=df.to_rows('dict')` when you initialize
+    # the component.
+    selected_id_set = set(selected_row_ids or [])
 
-    fig = px.scatter(x=dff[dff['Indicator Name'] == xaxis_column_name]['Value'],
-            y=dff[dff['Indicator Name'] == yaxis_column_name]['Value'],
-            hover_name=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name']
-            )
+    if row_ids is None:
+        dff = df
+        # pandas Series works enough like a list for this to be OK
+        row_ids = df['id']
+    else:
+        dff = df.loc[row_ids]
 
-    fig.update_traces(customdata=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'])
+    active_row_id = active_cell['row_id'] if active_cell else None
 
-    fig.update_xaxes(title=xaxis_column_name, type='linear' if xaxis_type == 'Linear' else 'log')
+    colors = ['#FF69B4' if id == active_row_id
+              else '#7FDBFF' if id in selected_id_set
+              else '#0074D9'
+              for id in row_ids]
 
-    fig.update_yaxes(title=yaxis_column_name, type='linear' if yaxis_type == 'Linear' else 'log')
+    print(row_ids)
+    print(selected_row_ids)
+    print(active_cell)
 
-    fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
-
-    return fig
-
-
-def create_time_series(dff, axis_type, title):
-
-    fig = px.scatter(dff, x='Year', y='Value')
-
-    fig.update_traces(mode='lines+markers')
-
-    fig.update_xaxes(showgrid=False)
-
-    fig.update_yaxes(type='linear' if axis_type == 'Linear' else 'log')
-
-    fig.add_annotation(x=0, y=0.85, xanchor='left', yanchor='bottom',
-                       xref='paper', yref='paper', showarrow=False, align='left',
-                       text=title)
-
-    fig.update_layout(height=225, margin={'l': 20, 'b': 30, 'r': 10, 't': 10})
-
-    return fig
-
-
-@app.callback(
-    Output('x-time-series', 'figure'),
-    Input('crossfilter-indicator-scatter', 'hoverData'),
-    Input('crossfilter-xaxis-column', 'value'),
-    Input('crossfilter-xaxis-type', 'value'))
-def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
-    country_name = hoverData['points'][0]['customdata']
-    # print(country_name)
-    dff = df[df['Country Name'] == country_name]
-    dff = dff[dff['Indicator Name'] == xaxis_column_name]
-    title = '<b>{}</b><br>{}'.format(country_name, xaxis_column_name)
-    return create_time_series(dff, axis_type, title)
-
-
-@app.callback(
-    Output('y-time-series', 'figure'),
-    Input('crossfilter-indicator-scatter', 'hoverData'),
-    Input('crossfilter-yaxis-column', 'value'),
-    Input('crossfilter-yaxis-type', 'value'))
-def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
-    dff = df[df['Country Name'] == hoverData['points'][0]['customdata']]
-    print(dff)
-    dff = dff[dff['Indicator Name'] == yaxis_column_name]
-    return create_time_series(dff, axis_type, yaxis_column_name)
+    return [
+        dcc.Graph(
+            id=column + '--row-ids',
+            figure={
+                'data': [
+                    {
+                        'x': dff['country'],
+                        'y': dff[column],
+                        'type': 'bar',
+                        'marker': {'color': colors},
+                    }
+                ],
+                'layout': {
+                    'xaxis': {'automargin': True},
+                    'yaxis': {
+                        'automargin': True,
+                        'title': {'text': column}
+                    },
+                    'height': 250,
+                    'margin': {'t': 10, 'l': 10, 'r': 10},
+                },
+            },
+        )
+        # check if column exists - user may have deleted it
+        # If `column.deletable=False`, then you don't
+        # need to do this check.
+        for column in ['pop', 'lifeExp', 'gdpPercap'] if column in dff
+    ]
 
 
 if __name__ == '__main__':
