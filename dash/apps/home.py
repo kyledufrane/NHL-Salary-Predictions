@@ -260,7 +260,7 @@ layout = dbc.Container([
 )
 def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, kde_selected_data, player_tbl_active_cell, player_search):
 
-    df = pd.read_csv('https://raw.githubusercontent.com/kyledufrane/NHL-Salary-Predictions/main/data/final_cleaned_player_data_dash.csv')
+    df = pd.read_csv('https://raw.githubusercontent.com/kyledufrane/NHL-Salary-Predictions/main/data/dash_cleaned_player_data.csv')
 
     columns = [dict(id='Player Name', name='Player Name')]
 
