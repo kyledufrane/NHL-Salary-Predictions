@@ -145,7 +145,7 @@ layout = dbc.Container([
             dash_table.DataTable(
                 active_cell=active_cell,
                 style_cell={'textAlign': 'left'},
-                style_data={'color': 'black',
+                style_data={'color': 'blue',
                             'backgroundColor': 'white',
                             'border': 'none'},
                 style_header={'display': 'none'},
@@ -164,7 +164,7 @@ layout = dbc.Container([
                 className='border border-primary'
             ),
             dcc.Graph(
-                id='player_kde',
+                id='player_kde'
             ),
             html.Div([
                 dbc.Row([
@@ -253,15 +253,14 @@ layout = dbc.Container([
         Input('skill_set_dropdown', 'value'),
         Input('position_dropdown', 'value'),
         Input('dataframe_features_dropdown', 'value'),
-        # Input('player_kde', 'selectedData'),
+        Input('player_kde', 'selectedData'),
         Input('player_tbl', 'active_cell'),
         Input('player_search', 'value'),
     ]
 )
-def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, player_tbl_active_cell, player_search):
-    # player_kde_graph_selected_data,
+def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, kde_selected_data, player_tbl_active_cell, player_search):
 
-    df = pd.read_csv('/home/kyle/Desktop/NHL-Salary-Predictions/data/final_cleaned_player_data_dash.csv')
+    df = pd.read_csv('https://raw.githubusercontent.com/kyledufrane/NHL-Salary-Predictions/main/data/final_cleaned_player_data_dash.csv')
 
     columns = [dict(id='Player Name', name='Player Name')]
 
@@ -320,11 +319,9 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         wanted_columns = [
         col_name for col_name in df_.columns
         if df_[col_name].dtype != 'object'
-        # and 'Inches' not in col_name
         and 'Rank' not in col_name
         and 'Salary' not in col_name
     ]
-
     # Filter and sort column descriptions for dataframe features dropdown
     dataframe_features_dropdown_options = sorted(
         wanted_columns
@@ -332,12 +329,29 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
 
     # Selecting features dropdown initial value
     if dataframe_features_dropdown is not None:
-        if dataframe_features_dropdown == dataframe_features_dropdown_options[0]:
+        if dataframe_features_dropdown == dataframe_features_dropdown_options[0]:            
+            dataframe_features_dropdown_value = dataframe_features_dropdown_options[0]
+        elif dataframe_features_dropdown not in dataframe_features_dropdown_options:
             dataframe_features_dropdown_value = dataframe_features_dropdown_options[0]
         else:
             dataframe_features_dropdown_value = dataframe_features_dropdown
     else:
         dataframe_features_dropdown_value = dataframe_features_dropdown_options[0]
+
+    # filtering dataframe based on selected points
+    if kde_selected_data != None:
+        try:
+            feature_ = kde_selected_data['points'][0]['y']
+            value_ = kde_selected_data['points'][0]['x']
+            if feature_ in dataframe_features_dropdown_options:
+                if feature_ == 'Height':
+                    df_ = df_[df_['Height (Inches)'] == value_]
+                else:
+                    df_ = df_[df_[feature_] == value_]
+        except:
+            pass
+    else:
+        pass
 
     # Selecting player name for display
     player_name = player_tbl_active_cell['row_id']
@@ -345,14 +359,13 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         player_name = 'Please Select A Player To View Their Stats'
     else:
         player_name
-
+    
     # Grabbing player stats for display
     stats_descriptions = [
         html.H3(children=col, style={'textAlign': 'center'})
         for col in wanted_columns
     ]
-
-    data_label_ = np.full_like(df['Player Name'], dataframe_features_dropdown)
+    data_label_ = np.full_like(df['Player Name'], dataframe_features_dropdown_value)
 
     customdata = np.stack((df['Player Name'], df['Overall Rank'], df['Salary Rank'], data_label_),axis=-1)
     
@@ -362,7 +375,9 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
     hover_template += "<b>Player Rank: </b> %{customdata[1]}"
 
     if player_name != 'Please Select A Player To View Their Stats':
+
         df_name = df[df['Player Name'] == player_name]
+        
         for col in df_name.columns:
             if 'Time' in col and 'quantile' not in col and 'Goals' not in col:
                 df_name[col] = df_name[col].astype(str).str.replace('.', ':') + ' Min'
@@ -380,23 +395,28 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         special_teams_rank = df_name['Special Teams Overall Rank']
         enforcer_rank = df_name['Enforcer Overall Rank']
         endurance_rank = df_name['Endurance Overall Rank']
-
-        if dataframe_features_dropdown == 'Height':
-            fig = ff.create_distplot([df_['Height (Inches)']], [dataframe_features_dropdown], show_hist=False)
-            fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name]['Height (Inches)'])[0], line_color='yellow')
-            fig.update_traces(hovertemplate=hover_template, customdata=customdata)
-            fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=0, b=0))
+        
+        if dataframe_features_dropdown == 'Height' and 'Height' in dataframe_features_dropdown_options:
+            fig = ff.create_distplot([df['Height (Inches)']], [dataframe_features_dropdown_value], show_hist=False)
+            fig.add_vline(x=np.array(df[df['Player Name'] == player_name]['Height (Inches)'])[0], line_color='yellow')
+            fig.update_traces(hovertemplate=hover_template,
+                            customdata=customdata)
+            fig.update_layout(showlegend=False, 
+                                margin=dict(l=0, r=0, t=0, b=0),
+                                clickmode='event+select')
             fig.update_yaxes(visible=False)
             fig.update_xaxes(visible=False)
-            fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name][dataframe_features_dropdown])[0], line_color='yellow')
 
         else:
-            fig = ff.create_distplot([df_[dataframe_features_dropdown]], [dataframe_features_dropdown], show_hist=False)
-            fig.update_traces(hovertemplate=hover_template, customdata=customdata)
-            fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=0, b=0))
+            fig = ff.create_distplot([df[dataframe_features_dropdown_value]], [dataframe_features_dropdown_value], show_hist=False)
+            fig.update_traces(hovertemplate=hover_template,
+                                customdata=customdata)
+            fig.update_layout(showlegend=False, 
+                                margin=dict(l=0, r=0, t=0, b=0),
+                                clickmode='event+select')
             fig.update_yaxes(visible=False)
             fig.update_xaxes(visible=False)
-            fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name][dataframe_features_dropdown])[0], line_color='yellow')
+            fig.add_vline(x=np.array(df[df['Player Name'] == player_name][dataframe_features_dropdown_value])[0], line_color='yellow')
 
     else:
         stats_values = [
@@ -411,7 +431,7 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         enforcer_rank = 0
         endurance_rank = 0
 
-        fig = ff.create_table('No Data')
+        fig = {}
         
     # Filtering from search bar
     if player_search != None:

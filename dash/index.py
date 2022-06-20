@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 
 from app import app
 # import all pages in the app
-from apps import home, player_worth
+from apps import home, player_worth, about
 
 app.layout = html.Div([
     dcc.Location(
@@ -62,6 +62,8 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/player_worth':
         return player_worth.layout
+    elif pathname == '/about':
+        return about.layout
     elif pathname == '/home' or pathname == '/':
         return home.layout
     else:
