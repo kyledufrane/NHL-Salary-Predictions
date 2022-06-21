@@ -137,9 +137,7 @@ layout = dbc.Container([
             width=3,
             className='my-4'
         ),
-    ],
-        # justify='center'
-    ),
+    ]),
     dbc.Row([
         dbc.Col(
             dash_table.DataTable(
@@ -160,9 +158,9 @@ layout = dbc.Container([
             dcc.Dropdown(
                 id='dataframe_features_dropdown',
                 style={'color': 'black',
-                       'textAlign': 'center'},
+                    'textAlign': 'center'},
                 className='border border-primary'
-            ),
+                ),
             dcc.Graph(
                 id='player_kde'
             ),
@@ -403,7 +401,8 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                             customdata=customdata)
             fig.update_layout(showlegend=False, 
                                 margin=dict(l=0, r=0, t=0, b=0),
-                                clickmode='event+select')
+                                clickmode='event+select',
+                                xaxis_tickformat=',d')
             fig.update_yaxes(visible=False)
             fig.update_xaxes(visible=False)
 
@@ -413,7 +412,9 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                 customdata=customdata)
             fig.update_layout(showlegend=False, 
                                 margin=dict(l=0, r=0, t=0, b=0),
-                                clickmode='event+select')
+                                clickmode='event+select',
+                                xaxis_tickformat=',d',
+                                separators=".")
             fig.update_yaxes(visible=False)
             fig.update_xaxes(visible=False)
             fig.add_vline(x=np.array(df[df['Player Name'] == player_name][dataframe_features_dropdown_value])[0], line_color='yellow')
@@ -436,6 +437,8 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
     # Filtering from search bar
     if player_search != None:
         df_ = df_[df_['Player Name'].str.contains(player_search)]
+    
+    print(kde_selected_data)
   
     return df_.to_dict('records'), \
         columns, \
