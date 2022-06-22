@@ -205,9 +205,11 @@ layout = dbc.Container([
         dbc.Row(
             dbc.Col(
                 html.Hr(
-                    style={'color': 'black',
-                           'height': '5px',
-                           'opacity': '100'}
+                    style={
+                        'color': 'black',
+                        'height': '5px',
+                        'opacity': '100'
+                    }
                 ),
                 width=10,
             ),
@@ -437,9 +439,7 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
     # Filtering from search bar
     if player_search != None:
         df_ = df_[df_['Player Name'].str.contains(player_search)]
-    
-    print(kde_selected_data)
-  
+      
     return df_.to_dict('records'), \
         columns, \
         dataframe_features_dropdown_options, \
