@@ -1,42 +1,61 @@
-# --------------------------------------------------------------
-# Data Cleaning library
-# --------------------------------------------------------------
-
-# Import libaries needed for functions
-
-import seaborn as sns
-from matplotlib import pyplot as plt
-import numpy as np
-from scipy import stats
-import pandas as pd
-import statsmodels.api as sm
-import datetime
-
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures, StandardScaler
-from sklearn.metrics import mean_squared_error, r2_score
-from statsmodels.formula.api import ols
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.svm import SVR
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import SelectKBest, f_regression
-
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np
+import pandas as pd
 ##################################################################
 
-def select_features(X_train, y_train, X_test, features):
-	
-        # configure to select a subset of features
-        fs = SelectKBest(score_func=f_regression, k=features)
 
-        # learn relationship from training data
-        fs.fit(X_train, y_train)
+def baseline_modeling_pipeline(X,y, model):
+    if model == 'randomforest':
+        model = RandomForestRegressor()
+    elif model == 'extratrees':
+        model = ExtraTreesRegressor()
+    elif model == 'linearregression':
+        model = LinearRegression()
+    else:
+        model = XGBRegressor()
 
-        # transform train input data
-        X_train_fs = pd.DataFrame(fs.transform(X_train))
+    X_train, X_test, y_train, y_test = train_test_split(X,y, random_state=42)
 
-        # transform test input data
-        X_test_fs = pd.DataFrame(fs.transform(X_test))
+    numeric_features = X_train.select_dtypes(
+        ['int64', 'float64']).columns.tolist()
+    categorical_features = X_train.select_dtypes(
+        ['object', 'bool']).columns.tolist()
 
-        return X_train_fs, X_test_fs, fs
+    numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])
+
+    categorical_transformer = OneHotEncoder(handle_unknown='ignore')
+
+    preprocessor = ColumnTransformer(
+        transformers=[('num', numeric_transformer, numeric_features),
+                      ('cat', categorical_transformer, categorical_features)])
+
+    clf = Pipeline(steps=[('preprocessor', preprocessor),
+                          ('classifier', model)])
+
+    clf.fit(X_train, y_train)
+
+    y_hat = clf.predict(X_test)
+
+    print('R2 test:', r2_score(y_test, y_hat))
+    print('RMSE:', np.sqrt(mean_squared_error(y_test, y_hat)))
+
+    try:
+
+        onehot_columns = clf.named_steps['preprocessor'] \
+                                .named_transformers_['cat'] \
+                                .get_feature_names(input_features=categorical_features)
+
+        feature_importance = pd.DataFrame(data=clf.named_steps['classifier'].feature_importances_,
+                                index=np.array(numeric_features + list(onehot_columns))) \
+                                .sort_values(0, ascending=False)
+    except:
+        feature_importance = []
+
+    return clf, feature_importance
