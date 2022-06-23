@@ -110,7 +110,7 @@ layout = dbc.Tabs(
                                 'Center',
                                 'Right Wing',
                                 'Left Wing',
-                                'Defensean'
+                                'Defenseman'
                             ],
                             value='Center',
                             className=className_,
