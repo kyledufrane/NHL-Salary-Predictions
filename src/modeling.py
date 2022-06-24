@@ -1,27 +1,25 @@
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
-from xgboost import XGBRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import roc_auc_score, f1_score, accuracy_score, classification_report
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+from sklearn.compose import ColumnTransformer 
+from sklearn.pipeline import Pipeline
+from xgboost import XGBClassifier
+
 import numpy as np
 import pandas as pd
 ##################################################################
 
 
-def baseline_modeling_pipeline(X,y, model):
+def baseline_modeling_pipeline(X_train, X_test, y_train, y_test, model):
+    
     if model == 'randomforest':
-        model = RandomForestRegressor()
+        model = RandomForestClassifier()
     elif model == 'extratrees':
-        model = ExtraTreesRegressor()
-    elif model == 'linearregression':
-        model = LinearRegression()
+        model = ExtraTreesClassifier()
     else:
-        model = XGBRegressor()
-
-    X_train, X_test, y_train, y_test = train_test_split(X,y, random_state=42)
+        model = XGBClassifier()
 
     numeric_features = X_train.select_dtypes(
         ['int64', 'float64']).columns.tolist()
@@ -43,8 +41,7 @@ def baseline_modeling_pipeline(X,y, model):
 
     y_hat = clf.predict(X_test)
 
-    print('R2 test:', r2_score(y_test, y_hat))
-    print('RMSE:', np.sqrt(mean_squared_error(y_test, y_hat)))
+    print(classification_report(y_test, y_hat))
 
     try:
 
