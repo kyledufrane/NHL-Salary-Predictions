@@ -26,7 +26,7 @@ def baseline_modeling_pipeline(X_train, X_test, y_train, y_test, model):
     categorical_features = X_train.select_dtypes(
         ['object', 'bool']).columns.tolist()
 
-    numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])
+    numeric_transformer = Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),('scaler', StandardScaler())])
 
     categorical_transformer = OneHotEncoder(handle_unknown='ignore')
 
