@@ -15,7 +15,6 @@ def clean_data():
         'Unnamed: 0',
         'index',
         'birthStateProvince',
-        'birthCountry',
         'height'
     ]
 
