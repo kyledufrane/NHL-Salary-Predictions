@@ -7,10 +7,12 @@ import numpy as np
 
 from app import app
 
-height = []
-for feet in [5,6]:
-    for inches in range(1,12):
-        height.append(f"{feet}\'{inches}\"")
+import sys
+sys.path.append('/home/kyle/Desktop/NHL-Salary-Predictions/src')
+from clean_data import clean_data
+
+
+df = clean_data()
 
 style_ = {
     # 'text-align':'center',
@@ -47,111 +49,193 @@ layout = dbc.Tabs(
                 ),
                 dbc.Row([
                     dbc.Col([
-                        html.H4('Current Age',
+                        html.H4('Career Assists',
                                 style={
                                     'textAlign':'center',
                                     'text-decoration':'underline'
                                 },
                                 className='py-3'
                         ),
-                        dbc.Input(
-                            type='number',
-                            min=16,
-                            max=50,
+                        dcc.Slider(
+                            id='career_assists',
+                            min=0,
+                            max=df['career_assists'].max() * 1.25,
+                            value=round(df['career_assists'].mean()),
                             step=1,
-                            value=25,
-                            className=className_,
-                            style=style_,
-                            id='currentage'
+                            marks=None,
                         ),
-                        html.H4('Height',
-                                style={
-                                    'textAlign':'center',
-                                    'text-decoration':'underline'
-                                },
-                                className='py-3'
+                        html.H4(
+                            'Career Points',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
                         ),
-                        dcc.Dropdown(
-                            options=height,
-                            value=height[5],
-                            className=className_,
-                            id='height'
-                        ),
-                        html.H4('Weight',
-                                style={
-                                    'textAlign':'center',
-                                    'text-decoration':'underline'
-                                },
-                                className='py-3'
-                        ),
-                        dbc.Input(
-                            type='number',
-                            min=100,
-                            max=300,
+                        dcc.Slider(
+                            id='career_points',
+                            min=0,
+                            max=df['career_points'].max() * 1.25,
+                            value=round(df['career_points'].mean()),
                             step=1,
-                            value=200,
-                            style=style_,
-                            className=className_,
-                            id='weight'
-                        )            
+                            marks=None
+                        ),
+                        html.H4(
+                            'Career Shots',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
+                        ),
+                        dcc.Slider(
+                            id='career_shots',
+                            min=0,
+                            max=df['career_shots'].max() * 1.25,
+                            value=round(df['career_shots'].mean()),
+                            step=1,
+                            marks=None
+                        ),
+                        html.H4(
+                            'Career TOI',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
+                        ),
+                        dcc.Slider(
+                            id='career_toi',
+                            min=0,
+                            max=df['career_timeOnIce'].max() * 1.25,
+                            value=round(df['career_timeOnIce'].mean()),
+                            step=1,
+                            marks=None
+                        ),
+                        html.H4(
+                            'Career Even TOI',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
+                        ),
+                        dcc.Slider(
+                            id='career_even_toi',
+                            min=0,
+                            max=df['career_evenTimeOnIce'].max() * 1.25,
+                            value=round(df['career_evenTimeOnIce'].mean()),
+                            step=1,
+                            marks=None
+                        )
                     ],
-                    width=3,
+                    width=5,
                     ),
                     dbc.Col([
-                        html.H4('Position',
-                                style={
-                                    'textAlign':'center',
-                                    'text-decoration':'underline'
-                                },
-                                className='py-3'
+                        html.H4(
+                            'Career PP TOI PG',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
                         ),
-                        dcc.Dropdown(
-                            options=[
-                                'Center',
-                                'Right Wing',
-                                'Left Wing',
-                                'Defenseman'
-                            ],
-                            value='Center',
-                            className=className_,
-                            id='position'
+                        dbc.Row([
+                            dbc.Col(
+                                dcc.Slider(
+                                    id='pp_toi_pg',
+                                    min=0,
+                                    max=df['career_powerPlayTimeOnIcePerGame'].max() * 1.25,
+                                    value=round(df['career_powerPlayTimeOnIcePerGame'].mean()),
+                                    step=1,
+                                    marks=None,
+                                    className='my-2'
+                                ),
+                            style={
+                                'textAlign':'left'
+                            },
+                            
+                            ),
+                            dbc.Col(
+                                dcc.Input(
+                                    'id=pp_toi_pg_input',
+                                    type='number',
+                                    # style={
+                                    #     'width':'50%'
+                                    # }
+                                ),
+                            style={
+                                'textAlign':'right'
+                            },
+                            width=3,
+                        )]),
+                        html.H4(
+                            'Career PP TOI',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
                         ),
-                        html.H4('Shot',
-                                style={
-                                    'textAlign':'center',
-                                    'text-decoration':'underline'
-                                },
-                                className='py-3'
+                        dcc.Slider(
+                            id='career_pp_toi',
+                            min=0,
+                            max=df['career_powerPlayTimeOnIce'].max() * 1.25,
+                            value=round(df['career_powerPlayTimeOnIce'].mean()),
+                            step=1,
+                            marks=None
                         ),
-                        dcc.Dropdown(
-                            options=[
-                                'Left',
-                                'Right'
-                            ],
-                            value='Right',
-                            className=className_,
-                            id='shot'
+                        html.H4(
+                            'Career PP Points',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
                         ),
-                        html.H4('Birth Country',
-                                style={
-                                    'textAlign':'center',
-                                    'text-decoration':'underline'
-                                },
-                                className='py-3'
+                        dcc.Slider(
+                            id='career_ppp',
+                            min=0,
+                            max=df['career_powerPlayPoints'].max() * 1.25,
+                            value=round(df['career_powerPlayPoints'].mean()),
+                            step=1,
+                            marks=None
                         ),
-                        dcc.Dropdown(
-                            options=[
-                                'CAN',
-                                'USA'
-                            ],
-                            value='CAN',
-                            className=className_,
-                            id='birthcountry'
-                        ) 
+                        html.H4(
+                            'PP TOI PG 2021-22',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
+                        ),
+                        dcc.Slider(
+                            id='pptoi_202122',
+                            min=0,
+                            max=df['powerPlayTimeOnIcePerGame22'].max() * 1.25,
+                            value=round(df['powerPlayTimeOnIcePerGame22'].mean()),
+                            step=1,
+                            marks=None
+                        ),
+                        html.H4(
+                            'Total Assists 2021-22',
+                            style={
+                                'textAlign':'center',
+                                'text-decoration':'underline'
+                            },
+                            className='py-3'
+                        ),
+                        dcc.Slider(
+                            id='tot_assists_202122',
+                            min=0,
+                            max=df['assists22'].max() * 1.25,
+                            value=round(df['assists22'].mean()),
+                            step=1,
+                            marks=None
+                        )
                     ],
-                    width=3,
-                    style={'margin-left':'25px'}
-                    )],
+                width=5,
+                )],
                 justify='center',
                 )
             ]),
@@ -159,19 +243,19 @@ layout = dbc.Tabs(
     ]
 )
 
-@app.callback(
-    [
-        Output('basic_predicted_salary', 'children')
-    ],
-    [
-        Input('currentage', 'value'),
-        Input('height', 'value'),
-        Input('weight', 'value'),
-        Input('position', 'value'),
-        Input('shot', 'value'),
-        Input('birthcountry', 'value')
-    ]
-)
-def get_basic_prediction(age, height, weight, position, shot, birthcountry):
-    print(age, height, weight, position, shot, birthcountry)
-    return [birthcountry]
+# @app.callback(
+#     [
+#         Output('basic_predicted_salary', 'children')
+#     ],
+#     [
+#         Input('currentage', 'value'),
+#         Input('height', 'value'),
+#         Input('weight', 'value'),
+#         Input('position', 'value'),
+#         Input('shot', 'value'),
+#         Input('birthcountry', 'value')
+#     ]
+# )
+# def get_basic_prediction(age, height, weight, position, shot, birthcountry):
+#     print(age, height, weight, position, shot, birthcountry)
+#     return [birthcountry]
