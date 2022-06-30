@@ -275,15 +275,18 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
             df_
 
     elif skill_sets_dropdown == 'Offense':
+        print('Offense')
         df_ = df.loc[:, offense]
         if position_dropdown != 'All Positions':
-            for col in df_.columns:
-                if "Pct" in col:
-                    df_[col] = df_[col]/100
+            # for col in df_.columns:
+            #     if "Pct" in col:
+            #         df_[col] = df_[col]/100
+            df_ = df_[df_['Position'] == position_dropdown].copy()
+        else:
+            df_
 
     elif skill_sets_dropdown == 'Special Teams':
         df_ = df.loc[:, special_teams]
-
         if position_dropdown != 'All Positions':
             df_ = df_[df_['Position'] == position_dropdown].copy()
         else:
@@ -397,8 +400,7 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         endurance_rank = df_name['Endurance Overall Rank']
         
         if dataframe_features_dropdown == 'Height' and 'Height' in dataframe_features_dropdown_options:
-            fig = ff.create_distplot([df['Height (Inches)']], [dataframe_features_dropdown_value], show_hist=False)
-            fig.add_vline(x=np.array(df[df['Player Name'] == player_name]['Height (Inches)'])[0], line_color='yellow')
+            fig = ff.create_distplot([df_['Height (Inches)']], [dataframe_features_dropdown_value], show_hist=False)
             fig.update_traces(hovertemplate=hover_template,
                             customdata=customdata)
             fig.update_layout(showlegend=False, 
@@ -407,9 +409,23 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                 xaxis_tickformat=',d')
             fig.update_yaxes(visible=False)
             fig.update_xaxes(visible=False)
+            try:
+                fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name]['Height (Inches)'])[0], line_color='yellow')
+            except:
+                player_name = 'Please Select A Player To View Their Stats'
+                stats_values = [
+                    html.H3(children=val, style={'textAlign': 'center'})
+                    for val in list('No Data' for i in range(len(wanted_columns)))
+                ]
+                salary_rank = 0
+                overall_rank = 0
+                offensive_rank = 0
+                special_teams_rank = 0
+                enforcer_rank = 0
+                endurance_rank = 0
 
         else:
-            fig = ff.create_distplot([df[dataframe_features_dropdown_value]], [dataframe_features_dropdown_value], show_hist=False)
+            fig = ff.create_distplot([df_[dataframe_features_dropdown_value]], [dataframe_features_dropdown_value], show_hist=False)
             fig.update_traces(hovertemplate=hover_template,
                                 customdata=customdata)
             fig.update_layout(showlegend=False, 
@@ -419,7 +435,20 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                 separators=".")
             fig.update_yaxes(visible=False)
             fig.update_xaxes(visible=False)
-            fig.add_vline(x=np.array(df[df['Player Name'] == player_name][dataframe_features_dropdown_value])[0], line_color='yellow')
+            try:
+                fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name][dataframe_features_dropdown_value])[0], line_color='yellow')
+            except:
+                player_name = 'Please Select A Player To View Their Stats'
+                stats_values = [
+                    html.H3(children=val, style={'textAlign': 'center'})
+                    for val in list('No Data' for i in range(len(wanted_columns)))
+                ]
+                salary_rank = 0
+                overall_rank = 0
+                offensive_rank = 0
+                special_teams_rank = 0
+                enforcer_rank = 0
+                endurance_rank = 0
 
     else:
         stats_values = [
