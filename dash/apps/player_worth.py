@@ -286,10 +286,20 @@ def basic_pred(career_assists_slider, \
     powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output = check_for_update(powerPlayTimeOnIcePerGame22_slider, powerPlayTimeOnIcePerGame22_input, powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output)
     assists22_slider_output, assists22_input_output = check_for_update(assists22_slider, assists22_input, assists22_slider_output, assists22_input_output)
 
-    X = pd.DataFrame.from_dict({'career_assists':career_assists_slider_output , 'career_points':career_points_slider_output, 'career_powerPlayTimeOnIcePerGame':career_powerPlayTimeOnIcePerGame_slider_output,
-       'career_shots':career_shots_slider_output, 'career_powerPlayTimeOnIce':career_powerPlayTimeOnIce_slider_output, 'career_powerPlayPoints':career_powerPlayPoints_slider_output,
-       'assists22': assists22_slider_output, 'career_timeOnIce':career_timeOnIce_slider_output, 'career_evenTimeOnIce':career_evenTimeOnIce_slider_output,
-       'powerPlayTimeOnIcePerGame22':powerPlayTimeOnIcePerGame22_slider_output}, orient='index').T
+    data_map = {
+        'career_assists':career_assists_slider_output, 
+        'career_points':career_points_slider_output, 
+        'career_powerPlayTimeOnIcePerGame':career_powerPlayTimeOnIcePerGame_slider_output,
+        'career_shots':career_shots_slider_output, 
+        'career_powerPlayTimeOnIce':career_powerPlayTimeOnIce_slider_output, 
+        'career_powerPlayPoints':career_powerPlayPoints_slider_output,
+        'assists22': assists22_slider_output, 
+        'career_timeOnIce':career_timeOnIce_slider_output, 
+        'career_evenTimeOnIce':career_evenTimeOnIce_slider_output,
+        'powerPlayTimeOnIcePerGame22':powerPlayTimeOnIcePerGame22_slider_output
+    }
+
+    X = pd.DataFrame.from_dict(data_map, orient='index').T
     
     pred = clf.predict(X)
     pred = "${:,.2f}".format(round(pred[0]))
