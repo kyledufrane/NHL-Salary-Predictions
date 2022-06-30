@@ -4,15 +4,19 @@ import dash_bootstrap_components as dbc
 import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
+import pickle
 
 from app import app
 
 import sys
-sys.path.append('/home/kyle/Desktop/NHL-Salary-Predictions/src')
-from clean_data import clean_data
+sys.path.append('/home/kyle/Desktop/NHL-Salary-Predictions')
+from src.clean_data import clean_data
 
 
 df = clean_data()
+
+with open('/home/kyle/Desktop/NHL-Salary-Predictions/models/rf_10_feats', 'rb') as f:
+    clf = pickle.load(f)
 
 first_pass = True
 career_assists_slider_output = int()
@@ -93,7 +97,11 @@ def slider_input_update(slider_val, input_val, old_slider_val, old_input_val):
 def check_for_update(slider, input, slider_output, input_output):
     if slider != input:
         slider_updated, input_updated = slider_input_update(slider, input, slider_output, input_output)
-        return slider_updated, input_updated
+        print(slider_updated, input_updated)
+    else:
+        slider_updated = slider
+        input_updated = input
+    return slider_updated, input_updated
 
 column_one_map = {
     'Career Assists':'career_assists', 
@@ -152,6 +160,14 @@ layout = dbc.Tabs(
             children=[
                 dbc.Row(
                     html.H2(
+                        'Your Predicted Salary Is:',
+                        style={
+                            'textAlign': 'center'
+                        }),
+                    className='my-5'
+                    ),
+                dbc.Row(
+                    html.H1(
                         id='basic_predicted_salary',
                         style={
                             'textAlign': 'center'
@@ -260,23 +276,25 @@ def basic_pred(career_assists_slider, \
         assists22_input_output =  assists22_input
 
     career_assists_slider_output, career_assists_input_output = check_for_update(career_assists_slider, career_assists_input, career_assists_slider_output, career_assists_input_output)
-    # career_points_slider_output, career_points_input_output = check_for_update(career_points_slider, career_points_input, career_points_slider_output, career_points_input_output)
-    # career_shots_slider_output, career_shots_input_output = check_for_update(career_shots_slider, career_shots_input, career_shots_slider_output, career_shots_input_output)
-    # career_timeOnIce_slider_output, career_timeOnIce_input_output = check_for_update(career_timeOnIce_slider, career_timeOnIce_input, career_timeOnIce_slider_output, career_timeOnIce_input_output)
-    #     # career_evenTimeOnIce_slider_output, career_evenTimeOnIce_input_output = slider_input_update(career_evenTimeOnIce_slider_output, career_evenTimeOnIce_input_output, career_evenTimeOnIce_slider)
-    #     # career_powerPlayTimeOnIcePerGame_slider_output, career_powerPlayTimeOnIcePerGame_input_output = slider_input_update(career_powerPlayTimeOnIcePerGame_slider_output, career_powerPlayTimeOnIcePerGame_input_output, career_powerPlayTimeOnIcePerGame_slider)
-    #     # career_powerPlayTimeOnIce_slider_output, career_powerPlayTimeOnIce_input_output = slider_input_update(career_powerPlayTimeOnIce_slider_output, career_powerPlayTimeOnIce_input_output, career_powerPlayTimeOnIce_slider)
-    #     # career_powerPlayPoints_slider_output, career_powerPlayPoints_input_output = slider_input_update(career_powerPlayPoints_slider_output, career_powerPlayPoints_input_output, career_powerPlayPoints_slider)
-    #     # powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output = slider_input_update(powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output, powerPlayTimeOnIcePerGame22_slider)
-    #     # assists22_slider_output, assists22_input_output = slider_input_update(assists22_slider_output, assists22_input_output, assists22_slider)
-    # print(career_assists_slider_output, career_assists_input_output)
-    # # if career_assists_slider != career_assists_input:
-    # #     career_assists_slider_output = career_assists_input
-    # #     print(career_assists_slider_output)
-    # print(career_assists_input, career_assists_slider)
-    # print(career_assists_slider_output, career_assists_input_output)
+    career_points_slider_output, career_points_input_output = check_for_update(career_points_slider, career_points_input, career_points_slider_output, career_points_input_output)
+    career_shots_slider_output, career_shots_input_output = check_for_update(career_shots_slider, career_shots_input, career_shots_slider_output, career_shots_input_output)
+    career_timeOnIce_slider_output, career_timeOnIce_input_output = check_for_update(career_timeOnIce_slider, career_timeOnIce_input, career_timeOnIce_slider_output, career_timeOnIce_input_output)
+    career_evenTimeOnIce_slider_output, career_evenTimeOnIce_input_output = check_for_update(career_evenTimeOnIce_slider, career_evenTimeOnIce_input, career_evenTimeOnIce_slider_output, career_evenTimeOnIce_input_output)
+    career_powerPlayTimeOnIcePerGame_slider_output, career_powerPlayTimeOnIcePerGame_input_output = check_for_update(career_powerPlayTimeOnIcePerGame_slider, career_powerPlayTimeOnIcePerGame_input, career_powerPlayTimeOnIcePerGame_slider_output, career_powerPlayTimeOnIcePerGame_input_output)
+    career_powerPlayTimeOnIce_slider_output, career_powerPlayTimeOnIce_input_output = check_for_update(career_powerPlayTimeOnIce_slider, career_powerPlayTimeOnIce_input, career_powerPlayTimeOnIce_slider_output, career_powerPlayTimeOnIce_input_output)
+    career_powerPlayPoints_slider_output, career_powerPlayPoints_input_output = check_for_update(career_powerPlayPoints_slider, career_powerPlayPoints_input, career_powerPlayPoints_slider_output, career_powerPlayPoints_input_output)
+    powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output = check_for_update(powerPlayTimeOnIcePerGame22_slider, powerPlayTimeOnIcePerGame22_input, powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output)
+    assists22_slider_output, assists22_input_output = check_for_update(assists22_slider, assists22_input, assists22_slider_output, assists22_input_output)
 
-    basic_predicted_salary_output = 0
+    X = pd.DataFrame.from_dict({'career_assists':career_assists_slider_output , 'career_points':career_points_slider_output, 'career_powerPlayTimeOnIcePerGame':career_powerPlayTimeOnIcePerGame_slider_output,
+       'career_shots':career_shots_slider_output, 'career_powerPlayTimeOnIce':career_powerPlayTimeOnIce_slider_output, 'career_powerPlayPoints':career_powerPlayPoints_slider_output,
+       'assists22': assists22_slider_output, 'career_timeOnIce':career_timeOnIce_slider_output, 'career_evenTimeOnIce':career_evenTimeOnIce_slider_output,
+       'powerPlayTimeOnIcePerGame22':powerPlayTimeOnIcePerGame22_slider_output}, orient='index').T
+    
+    pred = clf.predict(X)
+    pred = "${:,.2f}".format(round(pred[0]))
+    
+    basic_predicted_salary_output = pred
 
     return career_assists_slider_output, \
             career_assists_input_output, \
