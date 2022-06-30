@@ -5,6 +5,102 @@ import dash_bootstrap_components as dbc
 import plotly.figure_factory as ff
 import pandas as pd
 
+
+# --------------------------- Column Filters After Formatting------------------------------------------
+basic_player = [
+    'id',
+    'Overall Rank',
+    'Salary Rank',
+    'Player Name',
+    'Salary',
+    'Age',
+    'Height (Inches)',
+    'Height',
+    'Weight',
+    'Position',
+    'Shoots',
+    'Nationality',
+    'Offensive Overall Rank',
+    'Special Teams Overall Rank',
+    'Enforcer Overall Rank',
+    'Endurance Overall Rank'
+]
+offense = [
+    'id',
+    'Salary Rank',
+    'Player Name',
+    'Salary',
+    'Position',
+    'Overall Rank',
+    'Offensive Overall Rank',
+    'Special Teams Overall Rank',
+    'Enforcer Overall Rank',
+    'Endurance Overall Rank',
+    'Total Assists',
+    'Total Goals',
+    'Total Shots',
+    'Face Off Percentage',
+    'Shot Percentage',
+    'Game Winning Goals',
+    'Over Time Goals',
+    'Points',
+    'Plus Minus'
+]
+special_teams = [
+    'id',
+    'Salary Rank',
+    'Player Name',
+    'Salary',
+    'Position',
+    'Overall Rank',
+    'Offensive Overall Rank',
+    'Special Teams Overall Rank',
+    'Enforcer Overall Rank',
+    'Endurance Overall Rank',
+    'Power Play Goals',
+    'Power Play Points',
+    'Power Play Time On Ice',
+    'Short Handed Goals',
+    'Short Handed Points',
+    'Short Handed Time On Ice'
+]
+enforcer = [
+    'id',
+    'Salary Rank',
+    'Player Name',
+    'Salary',
+    'Position',
+    'Overall Rank',
+    'Offensive Overall Rank',
+    'Special Teams Overall Rank',
+    'Enforcer Overall Rank',
+    'Endurance Overall Rank',
+    'Total Hits',
+    'Total Penalty Minutes'
+]
+endurance = [
+    'id',
+    'Salary Rank',
+    'Player Name',
+    'Salary',
+    'Position',    
+    'Overall Rank',
+    'Offensive Overall Rank',
+    'Special Teams Overall Rank',
+    'Enforcer Overall Rank',
+    'Endurance Overall Rank',
+    'Time On Ice',
+    'Total Games',
+    'Total Shifts',
+    'Blocked Shots',
+    'Time On Ice Per Game',
+    'Even Time On Ice Per Game',
+    'Short Handed Time On Ice Per Game',
+    'Power Play Time On Ice Per Game'
+]
+
+
+
 def filter_data(skill_sets_dropdown, position_dropdown):
     df = pd.read_csv('https://raw.githubusercontent.com/kyledufrane/NHL-Salary-Predictions/main/data/dash_cleaned_player_data.csv')
     # Filter dataframes based on dropdowns
@@ -60,3 +156,25 @@ def build_plot(dataframe_features_dropdown_value, df_, data, hover_template, cus
     fig.update_yaxes(visible=False)
     fig.update_xaxes(visible=False)
     return fig
+
+def return_default_values(wanted_columns):
+    player_name = 'Please Select A Player To View Their Stats'
+    stats_values = [
+        html.H3(children=val, style={'textAlign': 'center'})
+        for val in list('No Data' for i in range(len(wanted_columns)))
+    ]
+    salary_rank = 0
+    overall_rank = 0
+    offensive_rank = 0
+    special_teams_rank = 0
+    enforcer_rank = 0
+    endurance_rank = 0
+
+    return player_name,  \
+            stats_values,  \
+            salary_rank,  \
+            overall_rank,  \
+            offensive_rank, \
+            special_teams_rank, \
+            enforcer_rank, \
+            endurance_rank 
