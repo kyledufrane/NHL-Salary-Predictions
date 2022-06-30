@@ -8,10 +8,7 @@ import numpy as np
 
 from app import app
 
-import sys
-sys.path.append('/home/kyle/Desktop/NHL-Salary-Predictions')
-
-from src.home_func import *
+from home_func import *
 
 # --------------------------- Column Filters After Formatting------------------------------------------
 basic_player = [
