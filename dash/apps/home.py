@@ -360,7 +360,7 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
             if 'Time' in col and 'quantile' not in col and 'Goals' not in col:
                 df_name[col] = df_name[col].astype(str).str.replace('.', ':') + ' Min'
             if 'Percentage' in col:
-                df_name[col] = df_name[col].astype(str) + '%'
+                df_name[col] = round((df_name[col]*100),2).astype(str) + '%'
         
         stats_values = [
             html.H3(children=df_name[val], style={'textAlign': 'center'})
