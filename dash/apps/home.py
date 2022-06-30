@@ -13,6 +13,8 @@ import numpy as np
 
 from app import app
 
+from home_func import *
+
 # --------------------------- External Variables ----------------------------------------------------
 
 # Initial cell selected in data table
