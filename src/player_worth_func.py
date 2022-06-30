@@ -12,7 +12,7 @@ def add_header(header):
     )
 
 
-def add_slider_input(data):
+def add_slider_input(df, data):
     return dbc.Row([
         dbc.Col(
             dcc.Slider(

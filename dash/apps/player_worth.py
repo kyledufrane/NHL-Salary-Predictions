@@ -4,11 +4,11 @@ import pandas as pd
 import pickle
 
 from app import app
-from helper_functions import player_worth_func
 
 import sys
 sys.path.append('/home/kyle/Desktop/NHL-Salary-Predictions')
 from src.clean_data import clean_data
+from src.player_worth_func import *
 
 df = clean_data()
 
@@ -45,12 +45,6 @@ column_one_map = {
     'Career Even TOI': 'career_evenTimeOnIce'
 }
 
-column_one_layout = convert_dash_format([
-    (add_header(header),
-     add_slider_input(data))
-    for header, data in column_one_map.items()
-])
-
 column_two_map = {
     'Career PP TOI PG': 'career_powerPlayTimeOnIcePerGame',
     'Career PP TOI': 'career_powerPlayTimeOnIce',
@@ -59,32 +53,17 @@ column_two_map = {
     'Total Assists 2021-22': 'assists22'
 }
 
-column_two_layout = convert_dash_format([
+column_one_layout = convert_dash_format([
     (add_header(header),
-     add_slider_input(data))
-    for header, data in column_two_map.items()
+     add_slider_input(df,data))
+    for header, data in column_one_map.items()
 ])
 
-all_columns = {**column_one_map, **column_two_map}
-
-callback_outputs = [
-    (Output(f'{data}_slider', 'value'),
-     Output(f'{data}_input', 'value'))
-    for data in all_columns.values()
-]
-
-callback_outputs = convert_dash_format(callback_outputs)
-
-prediction = Output('basic_predicted_salary', 'children')
-callback_outputs = list((*callback_outputs, prediction))
-
-callback_inputs = [
-    (Input(f'{data}_slider', 'value'),
-     Input(f'{data}_input', 'value'))
-    for data in all_columns.values()
-]
-
-callback_inputs = list(convert_dash_format(callback_inputs))
+column_two_layout = convert_dash_format([
+    (add_header(header),
+     add_slider_input(df,data))
+    for header, data in column_two_map.items()
+])
 
 layout = dbc.Tabs(
     id='tabs',
@@ -173,6 +152,26 @@ layout = dbc.Tabs(
     ]
 )
 
+all_columns = {**column_one_map, **column_two_map}
+
+callback_outputs = [
+    (Output(f'{data}_slider', 'value'),
+     Output(f'{data}_input', 'value'))
+    for data in all_columns.values()
+]
+
+callback_outputs = convert_dash_format(callback_outputs)
+
+prediction = Output('basic_predicted_salary', 'children')
+callback_outputs = list((*callback_outputs, prediction))
+
+callback_inputs = [
+    (Input(f'{data}_slider', 'value'),
+     Input(f'{data}_input', 'value'))
+    for data in all_columns.values()
+]
+
+callback_inputs = list(convert_dash_format(callback_inputs))
 
 @app.callback(
     callback_outputs,
