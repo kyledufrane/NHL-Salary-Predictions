@@ -83,11 +83,19 @@ endurance = [
     'Power Play Time On Ice Per Game'
 ]
 
-# --------------------------- External VAriables ----------------------------------------------------
+# --------------------------- External Variables ----------------------------------------------------
 
 # Initial cell selected in data table
 active_cell = {'row': 6, 'column': 3,
                'column_id': 'fullName', 'row_id': 'None'}
+
+def filter_data_position(df, position_dropdown, col_filter):
+    df_ = df.loc[:, col_filter]
+    if position_dropdown != 'All Positions':
+        df_ = df_[df_['Position'] == position_dropdown].copy()
+    else:
+        df_
+    return df_
 
 # --------------------------- Page Layout ----------------------------------------------------
 
@@ -266,46 +274,15 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
 
     # Filter dataframes based on dropdowns
     if skill_sets_dropdown == 'Basic Player Data':
-
-        df_ = df.loc[:, basic_player]
-
-        if position_dropdown != 'All Positions':
-            df_ = df_[df_['Position'] == position_dropdown]
-        else:
-            df_
-
+        df_ = filter_data_position(df, position_dropdown, basic_player)
     elif skill_sets_dropdown == 'Offense':
-        print('Offense')
-        df_ = df.loc[:, offense]
-        if position_dropdown != 'All Positions':
-            # for col in df_.columns:
-            #     if "Pct" in col:
-            #         df_[col] = df_[col]/100
-            df_ = df_[df_['Position'] == position_dropdown].copy()
-        else:
-            df_
-
+        df_ = filter_data_position(df, position_dropdown, offense)
     elif skill_sets_dropdown == 'Special Teams':
-        df_ = df.loc[:, special_teams]
-        if position_dropdown != 'All Positions':
-            df_ = df_[df_['Position'] == position_dropdown].copy()
-        else:
-            df_
-
+        df_ = filter_data_position(df, position_dropdown, special_teams)
     elif skill_sets_dropdown == 'Endurance':
-        df_ = df.loc[:, endurance]
-        if position_dropdown != 'All Positions':
-            df_ = df_[df_['Position'] == position_dropdown].copy()
-        else:
-            df_
-
+        df_ = filter_data_position(df, position_dropdown, endurance)
     else:
-        df_ = df.loc[:, enforcer]
-
-        if position_dropdown != 'All Positions':
-            df_ = df_[df_['Position'] == position_dropdown].copy()
-        else:
-            df_
+        df_ = filter_data_position(df, position_dropdown, enforcer)
 
 
     if skill_sets_dropdown == 'Basic Player Data':
@@ -353,8 +330,6 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                     df_ = df_[df_[feature_] == value_]
         except:
             pass
-    else:
-        pass
 
     # Selecting player name for display
     player_name = player_tbl_active_cell['row_id']
