@@ -14,12 +14,136 @@ from clean_data import clean_data
 
 df = clean_data()
 
-style_ = {
-    # 'text-align':'center',
-    'height':'38px',
-    'font-size': '25px',
+first_pass = True
+career_assists_slider_output = int()
+career_assists_input_output = int()
+career_points_slider_output = int()
+career_points_input_output = int()
+career_shots_slider_output = int()
+career_shots_input_output = int()
+career_timeOnIce_slider_output = int()
+career_timeOnIce_input_output = int()
+career_evenTimeOnIce_slider_output = int()
+career_evenTimeOnIce_input_output = int()
+career_powerPlayTimeOnIcePerGame_slider_output = int()
+career_powerPlayTimeOnIcePerGame_input_output =int()
+career_powerPlayTimeOnIce_slider_output = int()
+career_powerPlayTimeOnIce_input_output = int()
+career_powerPlayPoints_slider_output = int()
+career_powerPlayPoints_input_output = int()
+powerPlayTimeOnIcePerGame22_slider_output = int()
+powerPlayTimeOnIcePerGame22_input_output = int()
+assists22_slider_output = int()
+assists22_input_output =  int()
+
+def add_header(header):
+    return html.H4(
+        header,
+        style={
+            'textAlign':'center',
+            'text-decoration':'underline'
+        },
+        className='py-3'
+    )
+
+def add_slider_input(data):
+    return dbc.Row([
+        dbc.Col(
+            dcc.Slider(
+                id=f'{data}_slider',
+                min=0,
+                max=df[data].max() * 1.25,
+                value=round(df[data].mean()),
+                step=1,
+                marks=None,
+                className='my-2'
+            ),
+        style={
+            'textAlign':'left'
+        }
+        ),
+        dbc.Col(
+            dcc.Input(
+                id=f"{data}_input",
+                type='number',
+                value=round(df[data].mean()),
+                style={
+                    'width':'50%'
+                }
+            ),
+        )
+    ])
+
+def convert_dash_format(layout):
+    convert = ()
+    for i in range(len(layout)):
+        convert += layout[i]
+    return convert
+
+def slider_input_update(slider_val, input_val, old_slider_val, old_input_val):
+    if slider_val != input_val:
+        if slider_val == old_slider_val:
+            updated_slider_val = input_val
+            updated_input_val = input_val
+        else:
+            updated_input_val = slider_val
+            updated_slider_val = slider_val
+        return updated_slider_val, updated_input_val
+
+def check_for_update(slider, input, slider_output, input_output):
+    if slider != input:
+        slider_updated, input_updated = slider_input_update(slider, input, slider_output, input_output)
+        return slider_updated, input_updated
+
+column_one_map = {
+    'Career Assists':'career_assists', 
+    'Career Points':'career_points', 
+    'Career Shots':'career_shots', 
+    'Career TOI':'career_timeOnIce', 
+    'Career Even TOI':'career_evenTimeOnIce'
 }
-className_ = "d-flex align-items-center text-center fs-4 text border border-primary mb-2"
+
+column_one_layout = convert_dash_format([
+    (add_header(header),
+    add_slider_input(data))
+    for header, data in column_one_map.items()
+])
+
+column_two_map = {
+    'Career PP TOI PG':'career_powerPlayTimeOnIcePerGame', 
+    'Career PP TOI':'career_powerPlayTimeOnIce',
+    'Career PP Points':'career_powerPlayPoints',
+    'PP TOI PG 2021-22':'powerPlayTimeOnIcePerGame22', 
+    'Total Assists 2021-22':'assists22'
+}
+
+column_two_layout = convert_dash_format([
+    (add_header(header),
+    add_slider_input(data))
+    for header, data in column_two_map.items()
+])
+
+all_columns = {**column_one_map, **column_two_map}
+
+callback_outputs = [
+   (Output(f'{data}_slider', 'value'),
+    Output(f'{data}_input', 'value'))
+    for data in all_columns.values()
+]
+
+callback_outputs = convert_dash_format(callback_outputs)
+
+prediction = Output('basic_predicted_salary', 'children')
+callback_outputs = list((*callback_outputs, prediction))
+
+callback_inputs = [
+   (Input(f'{data}_slider', 'value'),
+    Input(f'{data}_input', 'value'))
+    for data in all_columns.values()
+]
+
+callback_inputs = list(convert_dash_format(callback_inputs))
+
 layout = dbc.Tabs(
     id='tabs',
     children=[
@@ -48,194 +172,15 @@ layout = dbc.Tabs(
                     justify='center',
                 ),
                 dbc.Row([
-                    dbc.Col([
-                        html.H4('Career Assists',
-                                style={
-                                    'textAlign':'center',
-                                    'text-decoration':'underline'
-                                },
-                                className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='career_assists',
-                            min=0,
-                            max=df['career_assists'].max() * 1.25,
-                            value=round(df['career_assists'].mean()),
-                            step=1,
-                            marks=None,
-                        ),
-                        html.H4(
-                            'Career Points',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='career_points',
-                            min=0,
-                            max=df['career_points'].max() * 1.25,
-                            value=round(df['career_points'].mean()),
-                            step=1,
-                            marks=None
-                        ),
-                        html.H4(
-                            'Career Shots',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='career_shots',
-                            min=0,
-                            max=df['career_shots'].max() * 1.25,
-                            value=round(df['career_shots'].mean()),
-                            step=1,
-                            marks=None
-                        ),
-                        html.H4(
-                            'Career TOI',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='career_toi',
-                            min=0,
-                            max=df['career_timeOnIce'].max() * 1.25,
-                            value=round(df['career_timeOnIce'].mean()),
-                            step=1,
-                            marks=None
-                        ),
-                        html.H4(
-                            'Career Even TOI',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='career_even_toi',
-                            min=0,
-                            max=df['career_evenTimeOnIce'].max() * 1.25,
-                            value=round(df['career_evenTimeOnIce'].mean()),
-                            step=1,
-                            marks=None
-                        )
-                    ],
-                    width=5,
+                    dbc.Col(
+                        column_one_layout,
+                        width=5,
                     ),
-                    dbc.Col([
-                        html.H4(
-                            'Career PP TOI PG',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dbc.Row([
-                            dbc.Col(
-                                dcc.Slider(
-                                    id='pp_toi_pg',
-                                    min=0,
-                                    max=df['career_powerPlayTimeOnIcePerGame'].max() * 1.25,
-                                    value=round(df['career_powerPlayTimeOnIcePerGame'].mean()),
-                                    step=1,
-                                    marks=None,
-                                    className='my-2'
-                                ),
-                            style={
-                                'textAlign':'left'
-                            },
-                            
-                            ),
-                            dbc.Col(
-                                dcc.Input(
-                                    'id=pp_toi_pg_input',
-                                    type='number',
-                                    # style={
-                                    #     'width':'50%'
-                                    # }
-                                ),
-                            style={
-                                'textAlign':'right'
-                            },
-                            width=3,
-                        )]),
-                        html.H4(
-                            'Career PP TOI',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='career_pp_toi',
-                            min=0,
-                            max=df['career_powerPlayTimeOnIce'].max() * 1.25,
-                            value=round(df['career_powerPlayTimeOnIce'].mean()),
-                            step=1,
-                            marks=None
-                        ),
-                        html.H4(
-                            'Career PP Points',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='career_ppp',
-                            min=0,
-                            max=df['career_powerPlayPoints'].max() * 1.25,
-                            value=round(df['career_powerPlayPoints'].mean()),
-                            step=1,
-                            marks=None
-                        ),
-                        html.H4(
-                            'PP TOI PG 2021-22',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='pptoi_202122',
-                            min=0,
-                            max=df['powerPlayTimeOnIcePerGame22'].max() * 1.25,
-                            value=round(df['powerPlayTimeOnIcePerGame22'].mean()),
-                            step=1,
-                            marks=None
-                        ),
-                        html.H4(
-                            'Total Assists 2021-22',
-                            style={
-                                'textAlign':'center',
-                                'text-decoration':'underline'
-                            },
-                            className='py-3'
-                        ),
-                        dcc.Slider(
-                            id='tot_assists_202122',
-                            min=0,
-                            max=df['assists22'].max() * 1.25,
-                            value=round(df['assists22'].mean()),
-                            step=1,
-                            marks=None
-                        )
-                    ],
-                width=5,
-                )],
+                    dbc.Col(
+                        column_two_layout,
+                        width=5,
+                    )
+                ],
                 justify='center',
                 )
             ]),
@@ -243,19 +188,114 @@ layout = dbc.Tabs(
     ]
 )
 
-# @app.callback(
-#     [
-#         Output('basic_predicted_salary', 'children')
-#     ],
-#     [
-#         Input('currentage', 'value'),
-#         Input('height', 'value'),
-#         Input('weight', 'value'),
-#         Input('position', 'value'),
-#         Input('shot', 'value'),
-#         Input('birthcountry', 'value')
-#     ]
-# )
-# def get_basic_prediction(age, height, weight, position, shot, birthcountry):
-#     print(age, height, weight, position, shot, birthcountry)
-#     return [birthcountry]
+@app.callback(
+    callback_outputs,
+    callback_inputs
+)
+def basic_pred(career_assists_slider, \
+                career_assists_input, \
+                career_points_slider, \
+                career_points_input, \
+                career_shots_slider, \
+                career_shots_input, \
+                career_timeOnIce_slider, \
+                career_timeOnIce_input, \
+                career_evenTimeOnIce_slider, \
+                career_evenTimeOnIce_input, \
+                career_powerPlayTimeOnIcePerGame_slider, \
+                career_powerPlayTimeOnIcePerGame_input, \
+                career_powerPlayTimeOnIce_slider, \
+                career_powerPlayTimeOnIce_input, \
+                career_powerPlayPoints_slider, \
+                career_powerPlayPoints_input, \
+                powerPlayTimeOnIcePerGame22_slider, \
+                powerPlayTimeOnIcePerGame22_input, \
+                assists22_slider, \
+                assists22_input):
+    
+    global first_pass, \
+        career_assists_slider_output, \
+        career_assists_input_output, \
+        career_points_slider_output, \
+        career_points_input_output, \
+        career_shots_slider_output, \
+        career_shots_input_output, \
+        career_timeOnIce_slider_output, \
+        career_timeOnIce_input_output, \
+        career_evenTimeOnIce_slider_output, \
+        career_evenTimeOnIce_input_output, \
+        career_powerPlayTimeOnIcePerGame_slider_output, \
+        career_powerPlayTimeOnIcePerGame_input_output, \
+        career_powerPlayTimeOnIce_slider_output, \
+        career_powerPlayTimeOnIce_input_output, \
+        career_powerPlayPoints_slider_output, \
+        career_powerPlayPoints_input_output, \
+        powerPlayTimeOnIcePerGame22_slider_output, \
+        powerPlayTimeOnIcePerGame22_input_output, \
+        assists22_slider_output, \
+        assists22_input_output
+
+
+    if first_pass == True:
+        first_pass = False
+        career_assists_slider_output = career_assists_slider
+        career_assists_input_output = career_assists_input
+        career_points_slider_output = career_points_slider
+        career_points_input_output = career_points_input
+        career_shots_slider_output = career_shots_slider
+        career_shots_input_output = career_shots_input
+        career_timeOnIce_slider_output = career_timeOnIce_slider
+        career_timeOnIce_input_output = career_timeOnIce_input
+        career_evenTimeOnIce_slider_output = career_evenTimeOnIce_slider
+        career_evenTimeOnIce_input_output = career_evenTimeOnIce_input
+        career_powerPlayTimeOnIcePerGame_slider_output = career_powerPlayTimeOnIcePerGame_slider
+        career_powerPlayTimeOnIcePerGame_input_output = career_powerPlayTimeOnIcePerGame_input
+        career_powerPlayTimeOnIce_slider_output = career_powerPlayTimeOnIce_slider
+        career_powerPlayTimeOnIce_input_output = career_powerPlayTimeOnIce_input
+        career_powerPlayPoints_slider_output = career_powerPlayPoints_slider
+        career_powerPlayPoints_input_output = career_powerPlayPoints_input
+        powerPlayTimeOnIcePerGame22_slider_output = powerPlayTimeOnIcePerGame22_slider
+        powerPlayTimeOnIcePerGame22_input_output = powerPlayTimeOnIcePerGame22_input
+        assists22_slider_output = assists22_slider
+        assists22_input_output =  assists22_input
+
+    career_assists_slider_output, career_assists_input_output = check_for_update(career_assists_slider, career_assists_input, career_assists_slider_output, career_assists_input_output)
+    # career_points_slider_output, career_points_input_output = check_for_update(career_points_slider, career_points_input, career_points_slider_output, career_points_input_output)
+    # career_shots_slider_output, career_shots_input_output = check_for_update(career_shots_slider, career_shots_input, career_shots_slider_output, career_shots_input_output)
+    # career_timeOnIce_slider_output, career_timeOnIce_input_output = check_for_update(career_timeOnIce_slider, career_timeOnIce_input, career_timeOnIce_slider_output, career_timeOnIce_input_output)
+    #     # career_evenTimeOnIce_slider_output, career_evenTimeOnIce_input_output = slider_input_update(career_evenTimeOnIce_slider_output, career_evenTimeOnIce_input_output, career_evenTimeOnIce_slider)
+    #     # career_powerPlayTimeOnIcePerGame_slider_output, career_powerPlayTimeOnIcePerGame_input_output = slider_input_update(career_powerPlayTimeOnIcePerGame_slider_output, career_powerPlayTimeOnIcePerGame_input_output, career_powerPlayTimeOnIcePerGame_slider)
+    #     # career_powerPlayTimeOnIce_slider_output, career_powerPlayTimeOnIce_input_output = slider_input_update(career_powerPlayTimeOnIce_slider_output, career_powerPlayTimeOnIce_input_output, career_powerPlayTimeOnIce_slider)
+    #     # career_powerPlayPoints_slider_output, career_powerPlayPoints_input_output = slider_input_update(career_powerPlayPoints_slider_output, career_powerPlayPoints_input_output, career_powerPlayPoints_slider)
+    #     # powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output = slider_input_update(powerPlayTimeOnIcePerGame22_slider_output, powerPlayTimeOnIcePerGame22_input_output, powerPlayTimeOnIcePerGame22_slider)
+    #     # assists22_slider_output, assists22_input_output = slider_input_update(assists22_slider_output, assists22_input_output, assists22_slider)
+    # print(career_assists_slider_output, career_assists_input_output)
+    # # if career_assists_slider != career_assists_input:
+    # #     career_assists_slider_output = career_assists_input
+    # #     print(career_assists_slider_output)
+    # print(career_assists_input, career_assists_slider)
+    # print(career_assists_slider_output, career_assists_input_output)
+
+    basic_predicted_salary_output = 0
+
+    return career_assists_slider_output, \
+            career_assists_input_output, \
+            career_points_slider_output, \
+            career_points_input_output, \
+            career_shots_slider_output, \
+            career_shots_input_output, \
+            career_timeOnIce_slider_output, \
+            career_timeOnIce_input_output, \
+            career_evenTimeOnIce_slider_output, \
+            career_evenTimeOnIce_input_output, \
+            career_powerPlayTimeOnIcePerGame_slider_output, \
+            career_powerPlayTimeOnIcePerGame_input_output, \
+            career_powerPlayTimeOnIce_slider_output, \
+            career_powerPlayTimeOnIce_input_output, \
+            career_powerPlayPoints_slider_output, \
+            career_powerPlayPoints_input_output, \
+            powerPlayTimeOnIcePerGame22_slider_output, \
+            powerPlayTimeOnIcePerGame22_input_output, \
+            assists22_slider_output, \
+            assists22_input_output, \
+            basic_predicted_salary_output

@@ -19,6 +19,9 @@ def clean_data():
     ]
 
     df.drop(drop, axis=1, inplace=True)
+    for col in df.select_dtypes(['int64', 'float64']).columns:
+        mean_ = df[col].mean()
+        df[col].fillna(mean_, inplace=True)
 
     years = ['17', '18', '19', '20', '21', '22']
     columns_ = [col for col in df.select_dtypes(['int', 'float']).columns 
@@ -139,7 +142,7 @@ def clean_data():
 
     for filter in col_filters:
         temp_df = df[filter]
-        df[f'career_{filter[0]}'] = temp_df.sum(axis=1)
+        df[f'career_{filter[0][:-2]}'] = temp_df.sum(axis=1)
     
     return df
 
