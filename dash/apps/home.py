@@ -1,9 +1,3 @@
-import sys
-
-from pyrsistent import m
-sys.path.append('/home/kyle/Desktop/NHL-Salary-Predictions')
-from src.home_func import *
-from distutils.command.build import build
 from dash import html, dash_table, Input, Output, dcc
 import dash_daq as daq
 import dash_bootstrap_components as dbc
@@ -13,7 +7,7 @@ import numpy as np
 
 from app import app
 
-from home_func import *
+from .home_func import *
 
 # --------------------------- External Variables ----------------------------------------------------
 
@@ -30,7 +24,10 @@ layout = dbc.Container([
                 id='player_search',
                 type='search',
                 placeholder='Enter Player Name',
-                className='border border-primary'
+                className='border border-primary',
+                style={
+                    'height': '38px'
+                }
             ),
             width=4,
             className='my-3'
@@ -44,16 +41,16 @@ layout = dbc.Container([
                     'Enforcer',
                     'Endurance'
                 ],
+                multi=True,
                 value='Basic Player Data',
                 id='skill_set_dropdown',
                 style={
                     'color': 'black',
-                    'height': '47px',
                     'textAlign': 'center'
                 },
                 className='border border-primary'
             ),
-            width=3,
+            width=2,
             className='my-3'
         ),
         dbc.Col(
@@ -65,19 +62,32 @@ layout = dbc.Container([
                     'Left Wing',
                     'Defenseman'
                 ],
+                multi=True,
                 value='All Positions',
                 id='position_dropdown',
+
                 style={
                     'color': 'black',
-                    'height': '47px',
                     'textAlign':'center',
-                    'verticalAlign': 'middle'
                 },
-                className='border border-primary'
+                className='align-items-center border border-primary'
             ),
-            width=3,
+            width=2,
             className='my-3'
         ),
+        dbc.Col(
+            html.Button(
+                'Reset Filter', 
+                id='reset_button', 
+                n_clicks=0,
+                style={
+                    'height':'38px',
+                    'width':'200px',
+                }
+            ),
+            width=1,
+            className='my-3'
+        )
     ]),
     dbc.Row([
         dbc.Col(
@@ -199,9 +209,10 @@ layout = dbc.Container([
         Input('player_kde', 'relayoutData'),
         Input('player_tbl', 'active_cell'),
         Input('player_search', 'value'),
+        Input('reset_button', 'n_clicks')
     ]
 )
-def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, kde_selected_data, kde_relayout_data, player_tbl_active_cell, player_search):
+def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, kde_selected_data, kde_relayout_data, player_tbl_active_cell, player_search, reset_button):
 
     columns = [dict(id='Player Name', name='Player Name')]
 
@@ -236,8 +247,6 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
 
     # Filtering based on user selected data
     if len(kde_relayout_data) > 1 and 'xaxis.autorange' not in kde_relayout_data.keys():
-        dropdown_values = [skill_sets_dropdown,
-                           position_dropdown, dataframe_features_dropdown]
         if dataframe_features_dropdown_value == 'Height':
             df_ = df_[(df_['Height (Inches)'] >= kde_relayout_data['xaxis.range[0]'])
                       & (df_['Height (Inches)'] <= kde_relayout_data['xaxis.range[1]'])]
@@ -324,7 +333,6 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                     special_teams_rank, \
                     enforcer_rank, \
                     endurance_rank = return_default_values(wanted_columns)
-
         except:
             fig = {}
     else:
