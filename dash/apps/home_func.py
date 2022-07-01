@@ -55,12 +55,12 @@ special_teams = (
     'Special Teams Overall Rank',
     'Enforcer Overall Rank',
     'Endurance Overall Rank',
-    'Power Play Goals',
-    'Power Play Points',
-    'Power Play Time On Ice',
+    'PP Goals',
+    'PP Points',
+    'PP TOI',
     'Short Handed Goals',
     'Short Handed Points',
-    'Short Handed Time On Ice'
+    'Short Handed TOI'
 )
 enforcer = (
     'id',
@@ -87,14 +87,14 @@ endurance = (
     'Special Teams Overall Rank',
     'Enforcer Overall Rank',
     'Endurance Overall Rank',
-    'Time On Ice',
+    'TOI',
     'Total Games',
     'Total Shifts',
     'Blocked Shots',
-    'Time On Ice Per Game',
-    'Even Time On Ice Per Game',
-    'Short Handed Time On Ice Per Game',
-    'Power Play Time On Ice Per Game'
+    'TOI PG',
+    'Even TOI PG',
+    'Short Handed TOI PG',
+    'PP TOI PG'
 )
 
 def filter_data(skill_sets_dropdown, position_dropdown):
