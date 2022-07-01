@@ -1,5 +1,6 @@
 from dash import html
 import plotly.figure_factory as ff
+import dash_bootstrap_components as dbc
 import pandas as pd
 
 # --------------------------- Column Filters After Formatting------------------------------------------
@@ -152,7 +153,89 @@ def select_columns(df_, skill_sets_dropdown):
         and 'Rank' not in col_name
         and 'Salary' not in col_name
     ]
+
     return sorted(list(set(wanted_columns)))
+
+def build_stats_columns(df, wanted_columns):
+
+    if len(df) == 0:
+        return return_default_values(wanted_columns)
+
+    else:
+    
+        basic_player_ = [col for col in wanted_columns if col in basic_player]
+        offense_ = [col for col in wanted_columns if col in offense]
+        special_teams_ = [col for col in wanted_columns if col in special_teams]
+        endurance_ = [col for col in wanted_columns if col in endurance]
+        enforcer_ = [col for col in wanted_columns if col in enforcer]
+
+        stats_row = []
+
+        def format_columns(df, filter):
+
+            style_={
+                'textAlign': 'center',
+                'text-decoration': 'bold underline'
+            }
+
+            if filter == basic_player_:
+                text = 'Basic Player'
+            elif filter == offense_:
+                text = 'Offensive'
+            elif filter == special_teams_:
+                text = 'Special Teams'
+            elif filter == endurance_:
+                text = 'Endurance'
+            else: 
+                text = 'Enforcer'
+
+            if len(filter) > 1:
+                stats_row = dbc.Row([
+                    dbc.Col(
+                        html.H4(
+                            text,
+                            style=style_
+                        ),
+                    width=2
+                    ),
+                    dbc.Col(
+                        dbc.Row(
+                            [
+                                html.H4(children=col, style={'textAlign': 'center'})
+                                for col in filter
+                        ])
+                    ),
+                    dbc.Col(
+                        dbc.Row([
+                                html.H4(children=df[val], style={'textAlign': 'center'})
+                                for val in filter
+                            ])
+                    ),
+                    dbc.Row(
+                        dbc.Col(
+                            html.Hr(
+                                style={
+                                    'color': 'black',
+                                    'height': '5px',
+                                    'opacity': '100'
+                                }
+                            ),
+                            width=10,
+                        ),
+                        justify='center'
+                    ),
+                ])
+                return stats_row
+            else:
+                return None
+
+        stats_row.append(format_columns(df, basic_player_))
+        stats_row.append(format_columns(df, offense_))
+        stats_row.append(format_columns(df, special_teams_))
+        stats_row.append(format_columns(df, endurance_))
+        stats_row.append(format_columns(df, enforcer_))
+
+        return stats_row
 
 def build_plot(dataframe_features_dropdown_value, df_, data, hover_template, customdata):
     fig = ff.create_distplot([df_[data]], [dataframe_features_dropdown_value], show_hist=False)

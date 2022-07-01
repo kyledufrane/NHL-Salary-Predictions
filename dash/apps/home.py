@@ -68,7 +68,7 @@ layout = dbc.Container([
 
                 style={
                     'color': 'black',
-                    'textAlign':'center',
+                    'textAlign': 'center',
                 },
                 className='align-items-center border border-primary'
             ),
@@ -77,12 +77,12 @@ layout = dbc.Container([
         ),
         dbc.Col(
             html.Button(
-                'Reset Filter', 
-                id='reset_button', 
+                'Reset Filter',
+                id='reset_button',
                 n_clicks=0,
                 style={
-                    'height':'38px',
-                    'width':'200px',
+                    'height': '38px',
+                    'width': '200px',
                 }
             ),
             width=1,
@@ -166,17 +166,8 @@ layout = dbc.Container([
             ),
             justify='center'
         ),
-        dbc.Row([
-            dbc.Col(
-                id='stats_description',
-                width='auto',
-                className='my-4',
-            ),
-            dbc.Col(
-                id='stats_values',
-                width=3,
-                className='my-4',
-            )],
+        dbc.Row([],
+            id='stats_row',
             justify='center'
         )
     ])],
@@ -191,8 +182,7 @@ layout = dbc.Container([
         Output('dataframe_features_dropdown', 'options'),
         Output('dataframe_features_dropdown', 'value'),
         Output('player_name', 'children'),
-        Output('stats_description', 'children'),
-        Output('stats_values', 'children'),
+        Output('stats_row', 'children'),
         Output('salary_rank', 'value'),
         Output('overall_rank', 'value'),
         Output('offensive_rank', 'value'),
@@ -262,10 +252,10 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         player_name
 
     # Grabbing player stats for display
-    stats_descriptions = [
-        html.H3(children=col, style={'textAlign': 'center'})
-        for col in wanted_columns
-    ]
+    # stats_descriptions = [
+    #     html.H3(children=col, style={'textAlign': 'center'})
+    #     for col in wanted_columns
+    # ]
 
     data_label_ = np.full_like(
         df_['Player Name'], dataframe_features_dropdown_value)
@@ -284,15 +274,16 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
 
         for col in df_name.columns:
             if 'Time' in col and 'quantile' not in col and 'Goals' not in col:
-                df_name[col] = df_name[col].astype(
-                    str).str.replace('.', ':') + ' Min'
+                df_name[col] = df_name[col].astype(str).str.replace('.', ':') + ' Min'
             if 'Percentage' in col:
                 df_name[col] = round((df_name[col]*100), 2).astype(str) + '%'
 
-        stats_values = [
-            html.H3(children=df_name[val], style={'textAlign': 'center'})
-            for val in wanted_columns
-        ]
+        # stats_values = [
+        #     html.H3(children=df_name[val], style={'textAlign': 'center'})
+        #     for val in wanted_columns
+        # ]
+        stats_values = build_stats_columns(df_name, wanted_columns)
+        print(stats_values)
 
         salary_rank = df_name['Salary Rank']
         overall_rank = df_name['Overall Rank']
@@ -310,13 +301,13 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                   0], line_color='yellow')
                 except:
                     player_name,  \
-                    stats_values,  \
-                    salary_rank,  \
-                    overall_rank,  \
-                    offensive_rank, \
-                    special_teams_rank, \
-                    enforcer_rank, \
-                    endurance_rank = return_default_values(wanted_columns)
+                        stats_values,  \
+                        salary_rank,  \
+                        overall_rank,  \
+                        offensive_rank, \
+                        special_teams_rank, \
+                        enforcer_rank, \
+                        endurance_rank = return_default_values(wanted_columns)
 
             else:
                 fig = build_plot(dataframe_features_dropdown_value, df_,
@@ -326,24 +317,24 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                   0], line_color='yellow')
                 except:
                     player_name,  \
-                    stats_values,  \
-                    salary_rank,  \
-                    overall_rank,  \
-                    offensive_rank, \
-                    special_teams_rank, \
-                    enforcer_rank, \
-                    endurance_rank = return_default_values(wanted_columns)
+                        stats_values,  \
+                        salary_rank,  \
+                        overall_rank,  \
+                        offensive_rank, \
+                        special_teams_rank, \
+                        enforcer_rank, \
+                        endurance_rank = return_default_values(wanted_columns)
         except:
             fig = {}
     else:
         player_name,  \
-        stats_values,  \
-        salary_rank,  \
-        overall_rank,  \
-        offensive_rank, \
-        special_teams_rank, \
-        enforcer_rank, \
-        endurance_rank = return_default_values(wanted_columns)
+            stats_values,  \
+            salary_rank,  \
+            overall_rank,  \
+            offensive_rank, \
+            special_teams_rank, \
+            enforcer_rank, \
+            endurance_rank = return_default_values(wanted_columns)
         fig = {}
 
     # Filtering from search bar
@@ -355,7 +346,6 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         wanted_columns, \
         dataframe_features_dropdown_value, \
         player_name, \
-        stats_descriptions, \
         stats_values, \
         salary_rank, \
         overall_rank, \
