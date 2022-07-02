@@ -1,3 +1,4 @@
+from pyrsistent import m
 from dash import html, dash_table, Input, Output, dcc
 import dash_daq as daq
 import dash_bootstrap_components as dbc
@@ -32,62 +33,70 @@ layout = dbc.Container([
             width=4,
             className='my-3'
         ),
-        dbc.Col(
-            dcc.Dropdown(
-                options=[
-                    'Basic Player Data',
-                    'Offense',
-                    'Special Teams',
-                    'Enforcer',
-                    'Endurance'
-                ],
-                multi=True,
-                value='Basic Player Data',
-                id='skill_set_dropdown',
-                style={
-                    'color': 'black',
-                    'textAlign': 'center'
-                },
-                className='border border-primary'
+        dbc.Col([
+            dbc.Row(
+                dcc.Checklist(
+                    options=[
+                        'Basic Player Data',
+                        'Offense',
+                        'Special Teams',
+                        'Enforcer',
+                        'Endurance'
+                    ],
+                    value=['Basic Player Data'],
+                    id='skill_set_dropdown',
+                    style={
+                        'color': 'black',
+                        'textAlign': 'center',
+                        'font-size': '20px',
+                    },
+                    inputStyle={'margin-right': '10px', 'margin-left': '20px'},
+                    className='border border-primary'
+                )
             ),
-            width=2,
-            className='my-3'
-        ),
-        dbc.Col(
-            dcc.Dropdown(
-                options=[
-                    'All Positions',
-                    'Center',
-                    'Right Wing',
-                    'Left Wing',
-                    'Defenseman'
-                ],
-                multi=True,
-                value='All Positions',
-                id='position_dropdown',
+            dbc.Row(
+                dcc.Checklist(
+                    options=[
+                        'Center',
+                        'Right Wing',
+                        'Left Wing',
+                        'Defenseman'
+                    ],
+                    inline=True,
+                    value=[
+                        'Center',
+                        'Right Wing',
+                        'Left Wing',
+                        'Defenseman'
+                    ],
+                    id='position_dropdown',
 
-                style={
-                    'color': 'black',
-                    'textAlign': 'center',
-                },
-                className='align-items-center border border-primary'
+                    style={
+                        'color': 'black',
+                        'textAlign': 'center',
+                        'font-size': '20px'
+                    },
+                    inputStyle={'margin-right': '10px', 'margin-left': '20px'},
+                    className='align-items-center border border-primary my-2'
+                ),
             ),
-            width=2,
+        ],
+            width=6,
             className='my-3'
         ),
-        dbc.Col(
-            html.Button(
-                'Reset Filter',
-                id='reset_button',
-                n_clicks=0,
-                style={
-                    'height': '38px',
-                    'width': '200px',
-                }
-            ),
-            width=1,
-            className='my-3'
-        )
+        # dbc.Col(
+        #     html.Button(
+        #         'Reset Filter',
+        #         id='reset_button',
+        #         n_clicks=0,
+        #         style={
+        #             'height': '38px',
+        #             'width': '200px',
+        #         },
+        #     ),
+        #     width=1,
+        #     className='my-3'
+        # )
     ]),
     dbc.Row([
         dbc.Col(
@@ -167,9 +176,10 @@ layout = dbc.Container([
             justify='center'
         ),
         dbc.Row([],
-            id='stats_row',
-            justify='center'
-        )
+                id='stats_row',
+                justify='center'
+                ),
+        add_legend(),
     ])],
     fluid=True
 )
@@ -189,7 +199,7 @@ layout = dbc.Container([
         Output('special_teams_rank', 'value'),
         Output('enforcer_rank', 'value'),
         Output('endurance_rank', 'value'),
-        Output('player_kde', 'figure')
+        Output('player_kde', 'figure'),
     ],
     [
         Input('skill_set_dropdown', 'value'),
@@ -199,12 +209,18 @@ layout = dbc.Container([
         Input('player_kde', 'relayoutData'),
         Input('player_tbl', 'active_cell'),
         Input('player_search', 'value'),
-        Input('reset_button', 'n_clicks')
-    ]
+        # Input('reset_button', 'n_clicks')
+    ],
+    prevent_initial_call=True
 )
-def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, kde_selected_data, kde_relayout_data, player_tbl_active_cell, player_search, reset_button):
-
+def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, kde_selected_data,
+                kde_relayout_data, player_tbl_active_cell, player_search):
     columns = [dict(id='Player Name', name='Player Name')]
+
+    if len(skill_sets_dropdown) == 0:
+        skill_sets_dropdown = ['Basic Player Data']
+    if len(position_dropdown) == 0:
+        position_dropdown == ['Center', 'Right Wing', 'Left Wing', 'Defenseman']
 
     df_ = filter_data(skill_sets_dropdown, position_dropdown)
 
@@ -223,7 +239,7 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         dataframe_features_dropdown_value = wanted_columns[0]
 
     # filtering dataframe based on selected points
-    if kde_selected_data != None:
+    if kde_selected_data is not None:
         try:
             feature_ = kde_selected_data['points'][0]['y']
             value_ = kde_selected_data['points'][0]['x']
@@ -248,20 +264,12 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
     player_name = player_tbl_active_cell['row_id']
     if player_name == 'None':
         player_name = 'Please Select A Player To View Their Stats'
-    else:
-        player_name
-
-    # Grabbing player stats for display
-    # stats_descriptions = [
-    #     html.H3(children=col, style={'textAlign': 'center'})
-    #     for col in wanted_columns
-    # ]
 
     data_label_ = np.full_like(
         df_['Player Name'], dataframe_features_dropdown_value)
 
     customdata = np.stack((df_['Player Name'], df_['Overall Rank'], df_[
-                          'Salary Rank'], data_label_), axis=-1)
+        'Salary Rank'], data_label_), axis=-1)
 
     hover_template = "<b>Player Name: </b> %{customdata[0]} <br><br>"
     hover_template += "<b>%{customdata[3]}: </b> %{x} <br>"
@@ -276,14 +284,9 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
             if 'Time' in col and 'quantile' not in col and 'Goals' not in col:
                 df_name[col] = df_name[col].astype(str).str.replace('.', ':') + ' Min'
             if 'Percentage' in col:
-                df_name[col] = round((df_name[col]*100), 2).astype(str) + '%'
+                df_name[col] = round((df_name[col] * 100), 2).astype(str) + '%'
 
-        # stats_values = [
-        #     html.H3(children=df_name[val], style={'textAlign': 'center'})
-        #     for val in wanted_columns
-        # ]
         stats_values = build_stats_columns(df_name, wanted_columns)
-        print(stats_values)
 
         salary_rank = df_name['Salary Rank']
         overall_rank = df_name['Overall Rank']
@@ -298,12 +301,12 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                  df_, 'Height (Inches)', hover_template, customdata)
                 try:
                     fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name]['Height (Inches)'])[
-                                  0], line_color='yellow')
+                        0], line_color='yellow')
                 except:
-                    player_name,  \
-                        stats_values,  \
-                        salary_rank,  \
-                        overall_rank,  \
+                    player_name, \
+                        stats_values, \
+                        salary_rank, \
+                        overall_rank, \
                         offensive_rank, \
                         special_teams_rank, \
                         enforcer_rank, \
@@ -314,12 +317,12 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                  dataframe_features_dropdown_value, hover_template, customdata)
                 try:
                     fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name][dataframe_features_dropdown_value])[
-                                  0], line_color='yellow')
+                        0], line_color='yellow')
                 except:
-                    player_name,  \
-                        stats_values,  \
-                        salary_rank,  \
-                        overall_rank,  \
+                    player_name, \
+                        stats_values, \
+                        salary_rank, \
+                        overall_rank, \
                         offensive_rank, \
                         special_teams_rank, \
                         enforcer_rank, \
@@ -327,10 +330,10 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         except:
             fig = {}
     else:
-        player_name,  \
-            stats_values,  \
-            salary_rank,  \
-            overall_rank,  \
+        player_name, \
+            stats_values, \
+            salary_rank, \
+            overall_rank, \
             offensive_rank, \
             special_teams_rank, \
             enforcer_rank, \
@@ -338,19 +341,8 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
         fig = {}
 
     # Filtering from search bar
-    if player_search != None:
+    if player_search is not None:
         df_ = df_[df_['Player Name'].str.contains(player_search)]
 
-    return df_.to_dict('records'), \
-        columns, \
-        wanted_columns, \
-        dataframe_features_dropdown_value, \
-        player_name, \
-        stats_values, \
-        salary_rank, \
-        overall_rank, \
-        offensive_rank, \
-        special_teams_rank, \
-        enforcer_rank, \
-        endurance_rank, \
-        fig
+    return df_.to_dict('records'), columns, wanted_columns, dataframe_features_dropdown_value, player_name, \
+        stats_values, salary_rank, overall_rank, offensive_rank, special_teams_rank, enforcer_rank, endurance_rank, fig
