@@ -144,7 +144,7 @@ def select_columns(df_, skill_sets_dropdown):
     if 'Basic Player Data' in skill_sets_dropdown:
         wanted_columns = []
         for col in df_.columns:
-            if df_[col] != 'object' \
+            if df_[col].dtype != 'object' \
                     and 'Inches' not in col \
                     and 'Rank' not in col \
                     and 'Salary' not in col:
@@ -162,8 +162,8 @@ def select_columns(df_, skill_sets_dropdown):
     return sorted(list(set(wanted_columns)))
 
 
-def build_stats_columns(df, wanted_columns):
-    if len(df) == 0:
+def build_stats_columns(df_, wanted_columns):
+    if len(df_) == 0:
         return return_default_values(wanted_columns)
 
     else:
@@ -173,7 +173,7 @@ def build_stats_columns(df, wanted_columns):
         endurance_ = [col for col in wanted_columns if col in endurance]
         enforcer_ = [col for col in wanted_columns if col in enforcer]
 
-        stats_row = []
+        stats_row_ = []
 
         def format_columns(df_, filter_):
 
@@ -192,7 +192,7 @@ def build_stats_columns(df, wanted_columns):
             else:
                 text = 'Enforcer'
 
-            if len(filter_) > 1:
+            if len(filter_) >= 1:
                 stats_row_ = dbc.Row([
                     dbc.Col(
                         html.H4(

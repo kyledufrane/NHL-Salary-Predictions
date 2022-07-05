@@ -66,92 +66,83 @@ column_two_layout = convert_dash_format([
     for header, data in column_two_map.items()
 ])
 
-layout = dbc.Tabs(
-    id='tabs',
-    children=[
-        dcc.Tab(
-            label='Basic Salary Prediction',
-            children=[
-                dbc.Row(
-                    html.H2(
-                        'Your Predicted Salary Is:',
-                        style={
-                            'textAlign': 'center'
-                        }),
-                    className='my-5'
-                ),
-                dbc.Row(
-                    html.H1(
-                        id='basic_predicted_salary',
-                        style={
-                            'textAlign': 'center'
-                        }),
-                    className='my-5'
-                ),
-                dbc.Row(
-                    dbc.Col(
-                        html.Hr(
-                            style={
-                                'color': 'black',
-                                'height': '5px',
-                                'opacity': '100',
-                            }
-                        ),
-                        width=10,
-                    ),
-                    justify='center',
-                ),
-                dbc.Row([
-                    dbc.Col(
-                        column_one_layout,
-                        width=5,
-                    ),
-                    dbc.Col(
-                        column_two_layout,
-                        width=5,
-                    )
-                ],
-                    justify='center',
-                ),
-                dbc.Row(
-                    dbc.Col([
-                        dbc.Row(
-                            html.H4(
-                                'Legend',
-                                style={
-                                    'textAlign': 'center',
-                                    'text-decoration': 'underline'
-                                }
-                            ),
-                        ),
-                        dbc.Row(
-                            html.H5(
-                                'PP: Power Play'
-                            )
-                        ),
-                        dbc.Row(
-                            html.H5(
-                                'TOI: Time On Ice'
-                            )
-                        ),
-                        dbc.Row(
-                            html.H5(
-                                'PG: Per Game'
-                            )
-                        )
-                    ],
-                        style={
-                            'textAlign': 'center',
-                            'border': '2px black solid'
-                        },
-                        className='my-5'
-                    )
-                )
-            ]
+layout = dbc.Container([
+    dbc.Row(
+        html.H2(
+            'Your Predicted Salary Is:',
+            style={
+                'textAlign': 'center'
+            }),
+        className='my-5'
+    ),
+    dbc.Row(
+        html.H1(
+            id='basic_predicted_salary',
+            style={
+                'textAlign': 'center'
+            }),
+        className='my-5'
+    ),
+    dbc.Row(
+        dbc.Col(
+            html.Hr(
+                style={
+                    'color': 'black',
+                    'height': '5px',
+                    'opacity': '100',
+                }
+            ),
+            width=10,
         ),
-        dcc.Tab(label='Advanced Salary Prediction')
-    ]
-)
+        justify='center',
+    ),
+    dbc.Row([
+        dbc.Col(
+            column_one_layout,
+            width=5,
+        ),
+        dbc.Col(
+            column_two_layout,
+            width=5,
+        )
+    ],
+        justify='center',
+    ),
+    dbc.Row(
+        dbc.Col([
+            dbc.Row(
+                html.H4(
+                    'Legend',
+                    style={
+                        'textAlign': 'center',
+                        'text-decoration': 'underline'
+                    }
+                ),
+            ),
+            dbc.Row(
+                html.H5(
+                    'PP: Power Play'
+                )
+            ),
+            dbc.Row(
+                html.H5(
+                    'TOI: Time On Ice'
+                )
+            ),
+            dbc.Row(
+                html.H5(
+                    'PG: Per Game'
+                )
+            )
+        ],
+            style={
+                'textAlign': 'center',
+                'border': '2px black solid'
+            },
+            className='my-5'
+        )
+    )
+])
 
 all_columns = {**column_one_map, **column_two_map}
 
