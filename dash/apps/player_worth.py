@@ -5,15 +5,12 @@ import pickle
 
 from app import app
 
-import sys
-
-sys.path.append('/home/kyle/Desktop/NHL-Salary-Predictions')
-from src.clean_data import clean_data
+from .clean_data import clean_data
 from .player_worth_func import *
 
 df = clean_data()
 
-with open('/home/kyle/Desktop/NHL-Salary-Predictions/models/rf_10_feats', 'rb') as f:
+with open('../models/rf_10_feats', 'rb') as f:
     clf = pickle.load(f)
 
 first_pass = True
