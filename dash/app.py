@@ -1,9 +1,10 @@
 import dash
 import dash_bootstrap_components as dbc
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX],
-                          meta_tags=[{'name': 'viewport',
-                                      'content': 'width=device-width, initial-scale=1.0'}])
+app = dash.Dash(__name__) #,
+                          # meta_tags=[{'name': 'viewport',
+                          #             'content': 'width=device-width, initial-scale=1.0'}])
+app.config.external_stylesheets = [dbc.themes.SLATE]
 
 server = app.server
 
@@ -17,16 +18,16 @@ app.config.suppress_callback_exceptions = True
 # JOURNAL, 
 # LITERA, 
 # LUMEN, 
-# LUX, 
+# LUX, #
 # MATERIA, 
 # MINTY, 
-# MORPH, 
+
 # PULSE, 
 # QUARTZ, 
 # SANDSTONE, 
 # SIMPLEX, 
 # SKETCHY, 
-# SLATE, 
+
 # SOLAR, 
 # SPACELAB, 
 # SUPERHERO, 
@@ -34,3 +35,9 @@ app.config.suppress_callback_exceptions = True
 # VAPOR, 
 # YETI, 
 # ZEPHYR
+
+
+
+
+# MORPH,
+# SLATE,

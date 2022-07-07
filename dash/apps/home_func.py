@@ -247,14 +247,26 @@ def build_stats_columns(df_, wanted_columns):
 
 def build_plot(dataframe_features_dropdown_value, df_, data, hover_template, customdata):
     fig = ff.create_distplot([df_[data]], [dataframe_features_dropdown_value], show_hist=False)
-    fig.update_traces(hovertemplate=hover_template,
-                      customdata=customdata)
-    fig.update_layout(showlegend=False,
-                      margin=dict(l=0, r=0, t=0, b=0),
-                      clickmode='event+select',
-                      xaxis_tickformat=',d')
-    fig.update_yaxes(visible=False)
-    fig.update_xaxes(visible=False)
+    fig.update_traces(
+        hovertemplate=hover_template,
+        customdata=customdata
+    )
+    fig.update_layout(
+        showlegend=False,
+        margin=dict(l=0, r=0, t=0, b=0),
+        clickmode='event+select',
+        xaxis_tickformat=',d'
+    )
+    fig.update_layout(
+        plot_bgcolor='rgba(0, 0, 0, 0)',
+        paper_bgcolor='rgba(0, 0, 0, 0)'
+    )
+    fig.update_yaxes(
+        visible=False
+    )
+    fig.update_xaxes(
+        visible=False
+    )
     return fig
 
 
@@ -272,7 +284,7 @@ def return_default_values(wanted_columns):
     endurance_rank = 0
 
     return player_name, stats_values, salary_rank, overall_rank, offensive_rank, special_teams_rank, enforcer_rank, \
-           endurance_rank
+        endurance_rank
 
 
 def add_legend():

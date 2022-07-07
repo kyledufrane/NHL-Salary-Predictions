@@ -14,24 +14,17 @@ from .home_func import *
 
 # Initial cell selected in data table
 active_cell = {'row': 6, 'column': 3,
-               'column_id': 'fullName', 'row_id': 'None'}
+               'column_id': 'fullName',
+               'row_id': 'None'
+}
 
 # --------------------------- Page Layout ----------------------------------------------------
 
 layout = dbc.Container([
     dbc.Row([
         dbc.Col(
-            dbc.Input(
-                id='player_search',
-                type='search',
-                placeholder='Enter Player Name',
-                className='border border-primary',
-                style={
-                    'height': '38px'
-                }
-            ),
             width=4,
-            className='my-3'
+            className='my-5'
         ),
         dbc.Col([
             dbc.Row(
@@ -46,11 +39,13 @@ layout = dbc.Container([
                     value=['Basic Player Data'],
                     id='skill_set_dropdown',
                     style={
-                        'color': 'black',
                         'textAlign': 'center',
                         'font-size': '20px',
                     },
-                    inputStyle={'margin-right': '10px', 'margin-left': '20px'},
+                    inputStyle={
+                        'margin-right': '10px',
+                        'margin-left': '20px'
+                    },
                     className='border border-primary'
                 )
             ),
@@ -72,53 +67,61 @@ layout = dbc.Container([
                     id='position_dropdown',
 
                     style={
-                        'color': 'black',
                         'textAlign': 'center',
                         'font-size': '20px'
                     },
-                    inputStyle={'margin-right': '10px', 'margin-left': '20px'},
+                    inputStyle={
+                        'margin-right': '10px',
+                        'margin-left': '20px'
+                    },
                     className='align-items-center border border-primary my-2'
                 ),
             ),
         ],
             width=6,
             className='my-3'
-        ),
-        # dbc.Col(
-        #     html.Button(
-        #         'Reset Filter',
-        #         id='reset_button',
-        #         n_clicks=0,
-        #         style={
-        #             'height': '38px',
-        #             'width': '200px',
-        #         },
-        #     ),
-        #     width=1,
-        #     className='my-3'
-        # )
+        )
     ]),
     dbc.Row([
-        dbc.Col(
+        dbc.Col([
+            dbc.Input(
+                id='player_search',
+                type='search',
+                placeholder='Enter Player Name',
+                className='border border-primary',
+                style={
+                    'height': '38px'
+                }
+            ),
             dash_table.DataTable(
                 active_cell=active_cell,
-                style_cell={'textAlign': 'left'},
-                style_data={'color': 'blue',
-                            'backgroundColor': 'white',
-                            'border': 'none'},
-                style_header={'display': 'none'},
-                style_table={'overflowX': 'scroll',
-                             'overflowY': 'scroll',
-                             'height': '750px'},
+                style_cell={
+                    'textAlign': 'left',
+                    'color': 'white'
+                },
+                style_data={
+                    'backgroundColor': '#272b30',
+                },
+                style_header={
+                    'display': 'none'
+                },
+                style_table={
+                    'overflowX': 'scroll',
+                    'overflowY': 'scroll',
+                    'height': '750px'
+                },
                 id='player_tbl'
             ),
-            width=2
+        ],
+            width=3
         ),
         dbc.Col([
             dcc.Dropdown(
                 id='dataframe_features_dropdown',
-                style={'color': 'black',
-                       'textAlign': 'center'},
+                style={
+                    'color': 'black',
+                    'textAlign': 'center'
+                },
                 className='border border-primary'
             ),
             dcc.Graph(
@@ -129,37 +132,50 @@ layout = dbc.Container([
                     dbc.Col([
                         daq.LEDDisplay(
                             label='Salary Rank',
-                            id='salary_rank'),
+                            id='salary_rank',
+                            color='#272b30'
+                        ),
                         daq.LEDDisplay(
                             label='Overall Rank',
                             id='overall_rank',
+                            color='#272b30'
                         ),
                     ]),
                     dbc.Col([
                         daq.LEDDisplay(
                             label='Offensive_Rank',
-                            id='offensive_rank'),
+                            id='offensive_rank',
+                            color='#272b30'
+                        ),
                         daq.LEDDisplay(
                             label='Special Teams Rank',
-                            id='special_teams_rank'),
+                            id='special_teams_rank',
+                            color='#272b30'
+                        ),
                     ]),
                     dbc.Col([
                         daq.LEDDisplay(
                             label='Enforcer Rank',
-                            id='enforcer_rank'),
+                            id='enforcer_rank',
+                            color='#272b30'
+                        ),
                         daq.LEDDisplay(
                             label='Endurance Rank',
-                            id='endurance_rank'),
+                            id='endurance_rank',
+                            color='#272b30'
+                        ),
                     ])
                 ])
             ])
         ],
-            width=10
+            width=9
         ),
         dbc.Row(
             html.H2(
                 id='player_name',
-                style={'textAlign': 'center'}
+                style={
+                    'textAlign': 'center'
+                }
             )
         ),
         dbc.Row(
