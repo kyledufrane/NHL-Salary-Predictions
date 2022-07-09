@@ -5,12 +5,11 @@ import pickle
 
 from app import app
 
-from .clean_data import clean_data
 from .player_worth_func import *
 
 df = clean_data()
 
-with open('../models/rf_10_feats', 'rb') as f:
+with open('model/rf_10_feats', 'rb') as f:
     clf = pickle.load(f)
 
 first_pass = True

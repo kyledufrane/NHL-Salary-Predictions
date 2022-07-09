@@ -97,10 +97,11 @@ layout = dbc.Container([
                 active_cell=active_cell,
                 style_cell={
                     'textAlign': 'left',
-                    'color': 'white'
+                    'color': '#2fa4e7'
                 },
                 style_data={
-                    'backgroundColor': '#272b30',
+                    'backgroundColor': 'white',
+                    'fontWeight': 'bold'
                 },
                 style_header={
                     'display': 'none'
@@ -125,7 +126,8 @@ layout = dbc.Container([
                 className='border border-primary'
             ),
             dcc.Graph(
-                id='player_kde'
+                id='player_kde',
+                className='my-5'
             ),
             html.Div([
                 dbc.Row([
@@ -133,38 +135,44 @@ layout = dbc.Container([
                         daq.LEDDisplay(
                             label='Salary Rank',
                             id='salary_rank',
-                            color='#272b30'
+                            color='#2fa4e7'
                         ),
                         daq.LEDDisplay(
                             label='Overall Rank',
                             id='overall_rank',
-                            color='#272b30'
+                            color='#2fa4e7'
                         ),
-                    ]),
+                    ],
+                        className='my-5'
+                    ),
                     dbc.Col([
                         daq.LEDDisplay(
                             label='Offensive_Rank',
                             id='offensive_rank',
-                            color='#272b30'
+                            color='#2fa4e7'
                         ),
                         daq.LEDDisplay(
                             label='Special Teams Rank',
                             id='special_teams_rank',
-                            color='#272b30'
+                            color='#2fa4e7'
                         ),
-                    ]),
+                    ],
+                        className='my-5'
+                    ),
                     dbc.Col([
                         daq.LEDDisplay(
                             label='Enforcer Rank',
                             id='enforcer_rank',
-                            color='#272b30'
+                            color='#2fa4e7'
                         ),
                         daq.LEDDisplay(
                             label='Endurance Rank',
                             id='endurance_rank',
-                            color='#272b30'
+                            color='#2fa4e7'
                         ),
-                    ])
+                    ],
+                        className='my-5'
+                    ),
                 ])
             ])
         ],
@@ -187,7 +195,7 @@ layout = dbc.Container([
                         'opacity': '100'
                     }
                 ),
-                width=10,
+                width=10.5,
             ),
             justify='center'
         ),
@@ -225,12 +233,12 @@ layout = dbc.Container([
         Input('player_kde', 'relayoutData'),
         Input('player_tbl', 'active_cell'),
         Input('player_search', 'value'),
-        # Input('reset_button', 'n_clicks')
     ],
     prevent_initial_call=True
 )
 def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropdown, kde_selected_data,
                 kde_relayout_data, player_tbl_active_cell, player_search):
+
     columns = [dict(id='Player Name', name='Player Name')]
 
     if len(skill_sets_dropdown) == 0:

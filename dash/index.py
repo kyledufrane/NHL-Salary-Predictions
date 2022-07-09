@@ -1,8 +1,10 @@
+import dash_bootstrap_components as dbc
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 from app import app
+
 # import all pages in the app
 from apps import home, player_worth, about
 
@@ -14,36 +16,36 @@ app.layout = html.Div([
     dbc.Navbar(
         dbc.Container([
             dbc.Row([
-                    dbc.Collapse(
-                        dbc.Nav([
-                            dbc.NavItem(
-                                dbc.NavLink(
-                                    'Player Search',
-                                    href='/'
-                                )
-                            ),
-                            dbc.NavItem(
-                                dbc.NavLink(
-                                    "What's My Worth?",
-                                    href='/player_worth',
-                                ),
-                                className='me-auto'
-                            ),
-                            dbc.NavItem(
-                                dbc.NavLink(
-                                    'About',
-                                    href='/about'
-                                )
+                dbc.Collapse(
+                    dbc.Nav([
+                        dbc.NavItem(
+                            dbc.NavLink(
+                                'Player Search',
+                                href='/'
                             )
-                        ],
-                            className='w-100'
                         ),
-                        is_open=False,
-                        navbar=True
-                    )
+                        dbc.NavItem(
+                            dbc.NavLink(
+                                "What's My Worth?",
+                                href='/player_worth',
+                            ),
+                            className='me-auto'
+                        ),
+                        dbc.NavItem(
+                            dbc.NavLink(
+                                'About',
+                                href='/about'
+                            )
+                        )
                     ],
-                    className='flex-grow-1'
-                    )
+                        className='w-100'
+                    ),
+                    is_open=False,
+                    navbar=True
+                )
+            ],
+                className='flex-grow-1'
+            )
 
         ],
             fluid=True
@@ -75,6 +77,5 @@ def display_page(pathname):
 
 
 if __name__ == '__main__':
-    app.run_server(host='127.0.0.1', debug=True, port=8051)
+    app.run_server(debug=True)
 
-#%%

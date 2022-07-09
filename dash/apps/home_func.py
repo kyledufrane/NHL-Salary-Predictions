@@ -224,7 +224,7 @@ def build_stats_columns(df_, wanted_columns):
                                     'opacity': '100'
                                 }
                             ),
-                            width=10,
+                            width=11,
                         ),
                         justify='center'
                     ),
@@ -255,17 +255,33 @@ def build_plot(dataframe_features_dropdown_value, df_, data, hover_template, cus
         showlegend=False,
         margin=dict(l=0, r=0, t=0, b=0),
         clickmode='event+select',
-        xaxis_tickformat=',d'
-    )
-    fig.update_layout(
+        xaxis_tickformat=',d',
         plot_bgcolor='rgba(0, 0, 0, 0)',
         paper_bgcolor='rgba(0, 0, 0, 0)'
     )
-    fig.update_yaxes(
-        visible=False
-    )
     fig.update_xaxes(
-        visible=False
+        {
+            'title': {
+                'font': {
+                    'size': 24,
+                    'color': '#2fa4e7',
+                    'family': 'Arial Bold'
+                },
+                'text': data,
+            },
+            'tickfont': {
+                'color': '#2fa4e7',
+                'size': 18
+            }
+        }
+    )
+    fig.update_yaxes(
+        {
+            'tickfont': {
+                'color': '#2fa4e7',
+                'size': 18
+            }
+        }
     )
     return fig
 
@@ -319,6 +335,8 @@ def add_legend():
                 'textAlign': 'center',
                 'border': '2px black solid'
             },
-            className='my-5'
-        )
+            className='my-5 mx-2',
+            width=10,
+        ),
+        justify='center'
     )
