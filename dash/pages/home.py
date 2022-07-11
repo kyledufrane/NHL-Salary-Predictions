@@ -1,12 +1,11 @@
+import dash
 from pyrsistent import m
-from dash import html, dash_table, Input, Output, dcc
+from dash import html, dash_table, Input, Output, dcc, callback
 import dash_daq as daq
 import dash_bootstrap_components as dbc
 import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
-
-from app import app
 
 from .home_func import *
 
@@ -19,6 +18,8 @@ active_cell = {'row': 6, 'column': 3,
 }
 
 # --------------------------- Page Layout ----------------------------------------------------
+
+dash.register_page(__name__, path='/')
 
 layout = dbc.Container([
     dbc.Row([
@@ -209,7 +210,7 @@ layout = dbc.Container([
 )
 
 
-@app.callback(
+@callback(
     [
         Output('player_tbl', 'data'),
         Output('player_tbl', 'columns'),

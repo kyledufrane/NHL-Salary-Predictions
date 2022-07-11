@@ -1,11 +1,12 @@
-from dash import html, Input, Output, dcc
+import dash
+from dash import html, Input, Output, dcc, callback
 import dash_bootstrap_components as dbc
 import pandas as pd
 import pickle
 
-from app import app
-
 from .player_worth_func import *
+
+dash.register_page(__name__)
 
 df = clean_data()
 
@@ -162,7 +163,7 @@ callback_inputs = [
 callback_inputs = list(convert_dash_format(callback_inputs))
 
 
-@app.callback(
+@callback(
     callback_outputs,
     callback_inputs
 )
