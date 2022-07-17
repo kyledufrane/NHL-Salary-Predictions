@@ -246,7 +246,11 @@ def build_stats_columns(df_, wanted_columns):
 
 
 def build_plot(dataframe_features_dropdown_value, df_, data, hover_template, customdata):
-    fig = ff.create_distplot([df_[data]], [dataframe_features_dropdown_value], show_hist=False)
+    fig = ff.create_distplot([df_[data]],
+                             [dataframe_features_dropdown_value],
+                             show_hist=False,
+                             colors='red'
+                        )
     fig.update_traces(
         hovertemplate=hover_template,
         customdata=customdata
