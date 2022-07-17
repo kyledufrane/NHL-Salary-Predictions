@@ -249,7 +249,6 @@ def build_plot(dataframe_features_dropdown_value, df_, data, hover_template, cus
     fig = ff.create_distplot([df_[data]],
                              [dataframe_features_dropdown_value],
                              show_hist=False,
-                             colors='red'
                         )
     fig.update_traces(
         hovertemplate=hover_template,
