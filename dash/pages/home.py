@@ -326,7 +326,7 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                  df_, 'Height (Inches)', hover_template, customdata)
                 try:
                     fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name]['Height (Inches)'])[
-                        0], line_color='yellow')
+                        0], line_color='orange', line_width=3)
                 except:
                     player_name, \
                         stats_values, \
@@ -342,7 +342,7 @@ def update_page(skill_sets_dropdown, position_dropdown, dataframe_features_dropd
                                  dataframe_features_dropdown_value, hover_template, customdata)
                 try:
                     fig.add_vline(x=np.array(df_[df_['Player Name'] == player_name][dataframe_features_dropdown_value])[
-                        0], line_color='yellow')
+                        0], line_color='orange', line_width=3)
                 except:
                     player_name, \
                         stats_values, \
